@@ -9,19 +9,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var users = []models.User{}
-
-
 // CREATE USER
 func CreateUser(c *gin.Context) {
-		var req dto.CreateUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+
+	var req dto.CreateUserRequest
+
+	if err := c.ShouldBindJSON(&req); 
+	
+	err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
 	user := services.CreateUser(req)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "User created",
 		"user": user,
@@ -77,7 +80,9 @@ func UpdateUser(c *gin.Context){
 			id := c.Param("id")
 
 
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); 
+	
+	err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
