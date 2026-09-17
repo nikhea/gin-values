@@ -11,13 +11,13 @@ func CreateUser(user *models.User) error {
 
 func GetUsers() ([]models.User, error) {
 	var users []models.User
-	err := config.DB.Find(&users).Error
+	err := config.DB.Preload("Profile").Find(&users).Error
 	return users, err
 }
 
 func GetUserByID(id string) (*models.User, error) {
 	var user models.User
-	err := config.DB.First(&user, "id = ?", id).Error
+	err := config.DB.Preload("Profile").First(&user, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
