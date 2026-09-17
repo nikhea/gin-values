@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"gin-learn/dto"
+	"gin-learn/models"
 	services "gin-learn/service"
 	"net/http"
 
@@ -10,7 +11,21 @@ import (
 	"gorm.io/gorm"
 )
 
-// CREATE PROFILE — POST /api/users/:id/profile
+// Compile-time reference so Swagger can resolve models.Profile in annotations.
+var _ = models.Profile{}
+
+// CreateProfile godoc
+// @Summary Create profile for user
+// @Tags profiles
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param request body dto.CreateProfileRequest true "Profile payload"
+// @Success 201 {object} dto.ProfileEnvelope
+// @Failure 400 {object} dto.ErrorEnvelope
+// @Failure 404 {object} dto.MessageEnvelope
+// @Failure 500 {object} dto.ErrorEnvelope
+// @Router /users/{id}/profile [post]
 func CreateProfile(c *gin.Context) {
 	id := c.Param("id")
 
@@ -42,7 +57,15 @@ func CreateProfile(c *gin.Context) {
 	})
 }
 
-// GET PROFILE — GET /api/users/:id/profile
+// GetProfile godoc
+// @Summary Get profile by user ID
+// @Tags profiles
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} models.Profile
+// @Failure 404 {object} dto.MessageEnvelope
+// @Failure 500 {object} dto.ErrorEnvelope
+// @Router /users/{id}/profile [get]
 func GetProfile(c *gin.Context) {
 	id := c.Param("id")
 
@@ -63,7 +86,18 @@ func GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, profile)
 }
 
-// UPDATE PROFILE — PUT /api/users/:id/profile
+// UpdateProfile godoc
+// @Summary Update profile by user ID
+// @Tags profiles
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param request body dto.UpdateProfileRequest true "Profile payload"
+// @Success 200 {object} models.Profile
+// @Failure 400 {object} dto.ErrorEnvelope
+// @Failure 404 {object} dto.MessageEnvelope
+// @Failure 500 {object} dto.ErrorEnvelope
+// @Router /users/{id}/profile [put]
 func UpdateProfile(c *gin.Context) {
 	id := c.Param("id")
 
@@ -92,7 +126,15 @@ func UpdateProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, profile)
 }
 
-// DELETE PROFILE — DELETE /api/users/:id/profile
+// DeleteProfile godoc
+// @Summary Delete profile by user ID
+// @Tags profiles
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} dto.MessageEnvelope
+// @Failure 404 {object} dto.MessageEnvelope
+// @Failure 500 {object} dto.ErrorEnvelope
+// @Router /users/{id}/profile [delete]
 func DeleteProfile(c *gin.Context) {
 	id := c.Param("id")
 

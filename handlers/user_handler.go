@@ -11,7 +11,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// CREATE USER
+// CreateUser godoc
+// @Summary Create user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateUserRequest true "User payload"
+// @Success 201 {object} dto.UserEnvelope
+// @Failure 400 {object} dto.ErrorEnvelope
+// @Failure 500 {object} dto.ErrorEnvelope
+// @Router /users/ [post]
 func CreateUser(c *gin.Context) {
 	var req dto.CreateUserRequest
 
@@ -36,7 +45,14 @@ func CreateUser(c *gin.Context) {
 	})
 }
 
-// GET ALL USERS
+// GetUsers godoc
+// @Summary List users
+// @Tags users
+// @Produce json
+// @Success 200 {object} dto.UsersEnvelope
+// @Failure 404 {object} dto.MessageEnvelope
+// @Failure 500 {object} dto.ErrorEnvelope
+// @Router /users/ [get]
 func GetUsers(c *gin.Context) {
 	users, err := services.GetUsers()
 	if err != nil {
@@ -60,7 +76,15 @@ func GetUsers(c *gin.Context) {
 	})
 }
 
-// GET SINGLE USER
+// GetUser godoc
+// @Summary Get user by ID
+// @Tags users
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} models.User
+// @Failure 404 {object} dto.MessageEnvelope
+// @Failure 500 {object} dto.ErrorEnvelope
+// @Router /users/{id} [get]
 func GetUser(c *gin.Context) {
 	id := c.Param("id")
 
@@ -81,7 +105,18 @@ func GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-// UPDATE USER
+// UpdateUser godoc
+// @Summary Update user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param request body dto.CreateUserRequest true "User payload"
+// @Success 200 {object} models.User
+// @Failure 400 {object} dto.ErrorEnvelope
+// @Failure 404 {object} dto.MessageEnvelope
+// @Failure 500 {object} dto.ErrorEnvelope
+// @Router /users/{id} [put]
 func UpdateUser(c *gin.Context) {
 	var req dto.CreateUserRequest
 	id := c.Param("id")
@@ -110,7 +145,15 @@ func UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-// DELETE USER
+// DeleteUser godoc
+// @Summary Delete user
+// @Tags users
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} dto.MessageEnvelope
+// @Failure 404 {object} dto.MessageEnvelope
+// @Failure 500 {object} dto.ErrorEnvelope
+// @Router /users/{id} [delete]
 func DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 

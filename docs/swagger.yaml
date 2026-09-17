@@ -1,0 +1,645 @@
+basePath: /api
+definitions:
+  dto.ContactEnvelope:
+    properties:
+      contact:
+        $ref: '#/definitions/models.Contact'
+      message:
+        type: string
+    type: object
+  dto.ContactsEnvelope:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/models.Contact'
+        type: array
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/dto.PageMeta'
+    type: object
+  dto.CreateContactRequest:
+    properties:
+      name:
+        maxLength: 100
+        type: string
+      type:
+        enum:
+        - email
+        - phone
+        - address
+        - other
+        type: string
+      user_id:
+        maxLength: 36
+        type: string
+      value:
+        maxLength: 2048
+        type: string
+    required:
+    - type
+    - user_id
+    - value
+    type: object
+  dto.CreateProfileRequest:
+    properties:
+      address:
+        maxLength: 500
+        type: string
+      avatar_url:
+        maxLength: 2048
+        type: string
+      bio:
+        maxLength: 1000
+        type: string
+      phone:
+        maxLength: 32
+        type: string
+    type: object
+  dto.CreateUserRequest:
+    properties:
+      age:
+        maximum: 100
+        minimum: 18
+        type: integer
+      email:
+        type: string
+      name:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - age
+    - email
+    - name
+    type: object
+  dto.ErrorEnvelope:
+    properties:
+      error:
+        type: string
+    type: object
+  dto.MessageEnvelope:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.PageMeta:
+    properties:
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  dto.ProfileEnvelope:
+    properties:
+      message:
+        type: string
+      profile:
+        $ref: '#/definitions/models.Profile'
+    type: object
+  dto.UpdateContactRequest:
+    properties:
+      name:
+        maxLength: 100
+        type: string
+      type:
+        enum:
+        - email
+        - phone
+        - address
+        - other
+        type: string
+      value:
+        maxLength: 2048
+        type: string
+    required:
+    - type
+    - value
+    type: object
+  dto.UpdateProfileRequest:
+    properties:
+      address:
+        maxLength: 500
+        type: string
+      avatar_url:
+        maxLength: 2048
+        type: string
+      bio:
+        maxLength: 1000
+        type: string
+      phone:
+        maxLength: 32
+        type: string
+    type: object
+  dto.UserEnvelope:
+    properties:
+      message:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  dto.UsersEnvelope:
+    properties:
+      message:
+        type: string
+      user:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+    type: object
+  models.Contact:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      value:
+        type: string
+    type: object
+  models.Profile:
+    properties:
+      address:
+        type: string
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      phone:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.User:
+    properties:
+      age:
+        type: integer
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      profile:
+        $ref: '#/definitions/models.Profile'
+      updated_at:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Users, profiles and contacts API.
+  title: Gin Learn API
+  version: "1.0"
+paths:
+  /contacts/:
+    get:
+      parameters:
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: string
+      - description: Filter by type
+        enum:
+        - email
+        - phone
+        - address
+        - other
+        in: query
+        name: type
+        type: string
+      - description: Search name and value
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ContactsEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: List contacts with pagination and filters
+      tags:
+      - contacts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Contact payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateContactRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ContactEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Create contact
+      tags:
+      - contacts
+  /contacts/{id}:
+    delete:
+      parameters:
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Delete contact
+      tags:
+      - contacts
+    get:
+      parameters:
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Contact'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Get contact by ID
+      tags:
+      - contacts
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Contact payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateContactRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Contact'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Update contact
+      tags:
+      - contacts
+  /users/:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UsersEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: List users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Create user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Delete user
+      tags:
+      - users
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Update user
+      tags:
+      - users
+  /users/{id}/profile:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Delete profile by user ID
+      tags:
+      - profiles
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Profile'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Get profile by user ID
+      tags:
+      - profiles
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Profile payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ProfileEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Create profile for user
+      tags:
+      - profiles
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Profile payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Profile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Update profile by user ID
+      tags:
+      - profiles
+schemes:
+- http
+swagger: "2.0"
