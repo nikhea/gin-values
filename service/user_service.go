@@ -3,95 +3,56 @@ package services
 import (
 	"gin-learn/dto"
 	"gin-learn/models"
-	"time"
+	"gin-learn/repository"
 
 	"github.com/google/uuid"
 )
 
-
-var Users []models.User
-
-
-
-func CreateUser(
-	req dto.CreateUserRequest,
-) models.User {
-
-
-	user := models.User{
-
-		ID: uuid.New().String(),
-
-		Name:req.Name,
-
-		Email:req.Email,
-
-		Age:req.Age,
-
-		CreatedAt:time.Now(),
-
-		UpdatedAt:time.Now(),
+func CreateUser(req dto.CreateUserRequest) (*models.User, error) {
+	user := &models.User{
+		ID:    uuid.New().String(),
+		Name:  req.Name,
+		Email: req.Email,
+		Age:   req.Age,
 	}
 
-
-	Users = append(Users,user)
-
-
-	return user
-}
-
-
-
-func GetUsers() []models.User {
-
-	return Users
-}
-
-func GetUserByID(id string) (*models.User, bool) {
-
-	for _, user := range Users {
-
-		if user.ID == id {
-
-			return &user, true
-		}
+	if err := repository.CreateUser(user); err != nil {
+		return nil, err
 	}
 
-	return nil, false
+	return user, nil
 }
 
-func UpdateUser(id string, req dto.CreateUserRequest) (*models.User, bool) {
-
-	for i, user := range Users {
-
-		if user.ID == id {
-
-			Users[i].Name = req.Name
-
-			Users[i].Email = req.Email
-
-			Users[i].Age = req.Age
-
-			Users[i].UpdatedAt = time.Now()
-
-			return &Users[i], true
-		}
-	}
-
-	return nil, false
+func GetUsers() ([]models.User, error) {
+	return repository.GetUsers()
 }
 
-func DeleteUser(id string) bool {
+func GetUserByID(id string) (*models.User, error) {
+	return repository.GetUserByID(id)
+}
 
-	for i, user := range Users {
-
-		if user.ID == id {
-
-			Users = append(Users[:i], Users[i+1:]...)
-
-			return true
-		}
+func UpdateUser(id string, req dto.CreateUserRequest) (*models.User, error) {
+	user, err := repository.GetUserByID(id)
+	if err != nil {
+		return nil, err
 	}
 
-	return false
+	user.Name = req.Name
+	user.Email = req.Email
+	user.Age = req.Age
+
+	if err := repository.UpdateUser(user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func DeleteUser(id string) error {
+	// Ensure user exists so callers can return 404
+	if _, err := repository.GetUserByID(id); err != nil {
+		return err
+	}
+
+	return repository.DeleteUser(id)
 }

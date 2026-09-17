@@ -1,0 +1,42 @@
+package config
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+var DB *gorm.DB
+
+func ConnectDatabase() {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		log.Fatal("DATABASE_URL is not set")
+	}
+
+	database, err := gorm.Open(
+		postgres.Open(dsn),
+		&gorm.Config{},
+	)
+
+	if err != nil {
+		log.Fatal("Database connection failed:", err)
+	}
+
+	sqlDB, err := database.DB()
+	if err != nil {
+		log.Fatal("Failed to get sql.DB:", err)
+	}
+
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	DB = database
+
+	fmt.Println("Database connected")
+}

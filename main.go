@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gin-learn/config"
 	"gin-learn/handlers"
 
 	"github.com/gin-gonic/gin"
@@ -9,9 +10,11 @@ import (
 
 func main(){
 
+	config.LoadEnv()
+	config.RunMigrations()
+	config.ConnectDatabase()
+
 	router := gin.Default()
-
-
 
 	api := router.Group("/api/users")
 	{
