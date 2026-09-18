@@ -1,8 +1,10 @@
-package dto
+package tests
 
 import (
 	"errors"
 	"testing"
+
+	"gin-learn/dto"
 )
 
 func TestValidateContactValue(t *testing.T) {
@@ -25,13 +27,13 @@ func TestValidateContactValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateContactValue(tt.contactType, tt.value)
+			err := dto.ValidateContactValue(tt.contactType, tt.value)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("ValidateContactValue(%q, %q) err = %v, wantErr = %v",
 					tt.contactType, tt.value, err, tt.wantErr)
 			}
 			if err != nil {
-				var vErr *ValidationError
+				var vErr *dto.ValidationError
 				if !errors.As(err, &vErr) {
 					t.Fatalf("expected *ValidationError, got %T", err)
 				}

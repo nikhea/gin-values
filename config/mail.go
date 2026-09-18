@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 )
@@ -52,7 +52,7 @@ func MailConfigFromEnv() MailConfig {
 func MailEnabled() bool {
 	cfg := MailConfigFromEnv()
 	if cfg.Address == "" || cfg.Password == "" {
-		log.Println("Mailer disabled: EMAIL_ADDRESS/EMAIL_PASSWORD not set, emails will be logged only")
+		slog.Warn("Mailer disabled: emails will be logged only", "hint", "Set EMAIL_ADDRESS/EMAIL_PASSWORD")
 		return false
 	}
 	return true

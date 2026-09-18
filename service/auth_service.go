@@ -1,11 +1,13 @@
 package services
 
 import (
+	"context"
 	"errors"
-	"log"
+	"log/slog"
 	"time"
 
 	"gin-learn/dto"
+	"gin-learn/jobs"
 	"gin-learn/models"
 	"gin-learn/repository"
 	"gin-learn/utils"
@@ -22,11 +24,14 @@ var (
 	ErrEmailNotVerified   = errors.New("email not verified")
 	ErrInvalidToken       = errors.New("invalid or expired token")
 	ErrAlreadyVerified    = errors.New("email already verified")
+	ErrInvalidOTP         = errors.New("invalid or expired code")
+	ErrTooManyAttempts    = errors.New("too many attempts, request a new code")
 )
 
 // Register creates a user with a bcrypt password hash, stores an email
-// verification token, and sends the verification email (logged when SMTP
-// is unconfigured so registration never fails for missing mail creds).
+// verification token, and enqueues the verification email as a River job
+// (logged when SMTP is unconfigured so registration never fails for
+// missing mail creds).
 func Register(req dto.RegisterRequest) (*models.User, error) {
 	if _, err := repository.GetUserByEmail(req.Email); err == nil {
 		return nil, ErrEmailTaken
@@ -44,6 +49,11 @@ func Register(req dto.RegisterRequest) (*models.User, error) {
 		return nil, err
 	}
 
+	otp, err := utils.GenerateOTP()
+	if err != nil {
+		return nil, err
+	}
+
 	user := &models.User{
 		ID:                uuid.New().String(),
 		Name:              req.Name,
@@ -51,15 +61,17 @@ func Register(req dto.RegisterRequest) (*models.User, error) {
 		Age:               req.Age,
 		PasswordHash:      hash,
 		VerificationToken: verifyToken,
+		OTPHash:           utils.HashOTP(otp),
+		OTPExpiresAt:      time.Now().Add(utils.OTPExpiry),
 	}
 
 	if err := repository.CreateUser(user); err != nil {
 		return nil, err
 	}
 
-	// Email failure must not fail registration; log and continue.
-	if err := utils.SendVerificationEmail(user.Email, user.Name, verifyToken); err != nil {
-		log.Println("verification email failed:", err)
+	// Email delivery is async: enqueue failure must not fail registration.
+	if err := jobs.EnqueueVerificationEmail(context.Background(), user.Email, user.Name, verifyToken, otp); err != nil {
+		slog.Warn("verification email job failed", "error", err, "email", user.Email)
 	}
 
 	return user, nil
@@ -89,7 +101,53 @@ func VerifyEmail(token string) (*models.User, error) {
 	return user, nil
 }
 
-// ResendVerification issues a fresh verification token and re-sends it.
+// VerifyOTP verifies a user's email with the 6-digit code from the
+// verification email. Codes expire after 10 minutes and allow at most
+// 5 attempts before a fresh code must be requested.
+func VerifyOTP(email, code string) (*models.User, error) {
+	if email == "" || code == "" {
+		return nil, ErrInvalidOTP
+	}
+	user, err := repository.GetUserByEmail(email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrInvalidOTP
+		}
+		return nil, err
+	}
+	if user.EmailVerified {
+		return nil, ErrAlreadyVerified
+	}
+	if user.OTPHash == "" || time.Now().After(user.OTPExpiresAt) {
+		return nil, ErrInvalidOTP
+	}
+	if user.OTPAttempts >= utils.OTPMaxAttempts {
+		return nil, ErrTooManyAttempts
+	}
+	if !utils.CheckOTP(code, user.OTPHash) {
+		user.OTPAttempts++
+		if err := repository.UpdateUser(user); err != nil {
+			return nil, err
+		}
+		if user.OTPAttempts >= utils.OTPMaxAttempts {
+			return nil, ErrTooManyAttempts
+		}
+		return nil, ErrInvalidOTP
+	}
+
+	user.EmailVerified = true
+	user.VerificationToken = ""
+	user.OTPHash = ""
+	user.OTPExpiresAt = time.Time{}
+	user.OTPAttempts = 0
+	if err := repository.UpdateUser(user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+// ResendVerification issues a fresh verification token and OTP code,
+// then re-sends the verification email.
 func ResendVerification(email string) error {
 	user, err := repository.GetUserByEmail(email)
 	if err != nil {
@@ -107,13 +165,20 @@ func ResendVerification(email string) error {
 	if err != nil {
 		return err
 	}
+	otp, err := utils.GenerateOTP()
+	if err != nil {
+		return err
+	}
 	user.VerificationToken = token
+	user.OTPHash = utils.HashOTP(otp)
+	user.OTPExpiresAt = time.Now().Add(utils.OTPExpiry)
+	user.OTPAttempts = 0
 	if err := repository.UpdateUser(user); err != nil {
 		return err
 	}
-	// Never fail the request on mail errors; the mailer logs when disabled.
-	if err := utils.SendVerificationEmail(user.Email, user.Name, token); err != nil {
-		log.Println("resend verification email failed:", err)
+	// Never fail the request on mail errors; delivery is a background job.
+	if err := jobs.EnqueueVerificationEmail(context.Background(), user.Email, user.Name, token, otp); err != nil {
+		slog.Warn("resend verification email job failed", "error", err, "email", user.Email)
 	}
 	return nil
 }
@@ -165,9 +230,9 @@ func ForgotPassword(email string) error {
 	if err := repository.UpdateUser(user); err != nil {
 		return err
 	}
-	// Always succeed: log mail failures instead of revealing anything.
-	if err := utils.SendPasswordResetEmail(user.Email, user.Name, token); err != nil {
-		log.Println("password reset email failed:", err)
+	// Always succeed: log enqueue failures instead of revealing anything.
+	if err := jobs.EnqueuePasswordResetEmail(context.Background(), user.Email, user.Name, token); err != nil {
+		slog.Warn("password reset email job failed", "error", err, "email", user.Email)
 	}
 	return nil
 }

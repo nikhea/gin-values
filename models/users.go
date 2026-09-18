@@ -21,6 +21,12 @@ type User struct {
 	ResetToken        string    `gorm:"column:reset_token" json:"-"`
 	ResetExpiresAt    time.Time `gorm:"column:reset_expires_at" json:"-"`
 
+	// One-time passcode for email verification. Only the SHA-256 hash
+	// is stored; the plain code only ever travels by email.
+	OTPHash      string    `gorm:"column:otp_hash" json:"-"`
+	OTPExpiresAt time.Time `gorm:"column:otp_expires_at" json:"-"`
+	OTPAttempts  int       `gorm:"column:otp_attempts" json:"-"`
+
 	CreatedAt time.Time `json:"created_at"`
 
 	UpdatedAt time.Time `json:"updated_at"`

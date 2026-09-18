@@ -1,7 +1,16 @@
 package main
 
 import (
+	"context"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"gin-learn/config"
+	"gin-learn/jobs"
 	"gin-learn/routes"
 )
 
@@ -16,11 +25,39 @@ import (
 // @name Authorization
 // @description Type "Bearer" followed by a space and the JWT. Example: "Bearer eyJhbGciOiJIUzI1NiJ9..."
 func main() {
+	config.InitLogger()
 	config.LoadEnv()
 	config.RunMigrations()
 	config.ConnectDatabase()
 
-	router := routes.Setup()
+	ctx := context.Background()
+	if err := jobs.Setup(ctx, os.Getenv("DATABASE_URL")); err != nil {
+		slog.Error("River setup failed", "error", err)
+		os.Exit(1)
+	}
 
-	router.Run(":8080")
+	router := routes.Setup()
+	srv := &http.Server{Addr: ":8080", Handler: router}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("Server failed", "error", err)
+			os.Exit(1)
+		}
+	}()
+	slog.Info("Server listening", "addr", ":8080")
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	slog.Info("Shutting down...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		slog.Error("Server shutdown error", "error", err)
+	}
+	if err := jobs.Shutdown(shutdownCtx); err != nil {
+		slog.Error("River shutdown error", "error", err)
+	}
 }

@@ -11,6 +11,15 @@ definitions:
       user:
         $ref: '#/definitions/models.User'
     type: object
+  dto.AvatarResponse:
+    properties:
+      avatar_url:
+        example: /uploads/avatars/users/458622d8-daba-4252-8ce1-846277353139.png
+        type: string
+      message:
+        example: Avatar uploaded
+        type: string
+    type: object
   dto.ContactEnvelope:
     properties:
       contact:
@@ -108,6 +117,22 @@ definitions:
     required:
     - email
     type: object
+  dto.ImportSummary:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/dto.RowError'
+        type: array
+      failed:
+        example: 1
+        type: integer
+      imported:
+        example: 2
+        type: integer
+      message:
+        example: Import finished
+        type: string
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -193,6 +218,15 @@ definitions:
     required:
     - new_password
     type: object
+  dto.RowError:
+    properties:
+      message:
+        example: invalid email value
+        type: string
+      row:
+        example: 3
+        type: integer
+    type: object
   dto.UpdateContactRequest:
     properties:
       name:
@@ -250,8 +284,23 @@ definitions:
           $ref: '#/definitions/models.User'
         type: array
     type: object
+  dto.VerifyOTPRequest:
+    properties:
+      code:
+        example: "482914"
+        type: string
+      email:
+        example: kaige@example.com
+        type: string
+    required:
+    - code
+    - email
+    type: object
   models.Contact:
     properties:
+      avatar_url:
+        example: /uploads/avatars/contacts/9c9e6679-7425-40de-944b-e07fc1f90ae7.png
+        type: string
       created_at:
         type: string
       id:
@@ -514,6 +563,35 @@ paths:
       summary: Verify email address
       tags:
       - auth
+  /auth/verify-otp:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email and 6-digit code
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Verify email with OTP code
+      tags:
+      - auth
   /contacts/:
     get:
       parameters:
@@ -700,6 +778,112 @@ paths:
       summary: Update contact
       tags:
       - contacts
+  /contacts/{id}/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Contact ID
+        example: 9c9e6679-7425-40de-944b-e07fc1f90ae7
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Avatar image (.jpg, .jpeg, .png, .gif, .webp; max 5 MB)
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AvatarResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Upload a contact's avatar image
+      tags:
+      - contacts
+  /contacts/import/csv:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Owner user ID
+        in: formData
+        name: user_id
+        required: true
+        type: string
+      - description: CSV file with header name,type,value
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ImportSummary'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Import contacts from a CSV file
+      tags:
+      - contacts
+  /contacts/import/json:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Owner user ID
+        in: formData
+        name: user_id
+        required: true
+        type: string
+      - description: JSON file with an array of {name,type,value}
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ImportSummary'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Import contacts from a JSON file
+      tags:
+      - contacts
   /users/:
     get:
       produces:
@@ -847,6 +1031,42 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user
+      tags:
+      - users
+  /users/{id}/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: User ID
+        example: 458622d8-daba-4252-8ce1-846277353139
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Avatar image (.jpg, .jpeg, .png, .gif, .webp; max 5 MB)
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AvatarResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Upload a user's avatar image
       tags:
       - users
   /users/{id}/profile:

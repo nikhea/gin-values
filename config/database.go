@@ -1,8 +1,7 @@
 package config
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -15,7 +14,8 @@ var DB *gorm.DB
 func ConnectDatabase() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		log.Fatal("DATABASE_URL is not set")
+		slog.Error("DATABASE_URL is not set")
+		os.Exit(1)
 	}
 
 	database, err := gorm.Open(
@@ -24,12 +24,14 @@ func ConnectDatabase() {
 	)
 
 	if err != nil {
-		log.Fatal("Database connection failed:", err)
+		slog.Error("Database connection failed", "error", err)
+		os.Exit(1)
 	}
 
 	sqlDB, err := database.DB()
 	if err != nil {
-		log.Fatal("Failed to get sql.DB:", err)
+		slog.Error("Failed to get sql.DB", "error", err)
+		os.Exit(1)
 	}
 
 	sqlDB.SetMaxIdleConns(10)
@@ -38,5 +40,5 @@ func ConnectDatabase() {
 
 	DB = database
 
-	fmt.Println("Database connected")
+	slog.Info("Database connected")
 }

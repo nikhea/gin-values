@@ -1,31 +1,33 @@
-package utils
+package tests
 
 import (
 	"testing"
+
+	"gin-learn/utils"
 )
 
 func TestHashAndCheckPassword(t *testing.T) {
-	hash, err := HashPassword("supersecret123")
+	hash, err := utils.HashPassword("supersecret123")
 	if err != nil {
 		t.Fatalf("HashPassword: %v", err)
 	}
 	if hash == "supersecret123" {
 		t.Fatal("hash must not equal plaintext")
 	}
-	if err := CheckPassword(hash, "supersecret123"); err != nil {
+	if err := utils.CheckPassword(hash, "supersecret123"); err != nil {
 		t.Fatalf("CheckPassword correct: %v", err)
 	}
-	if err := CheckPassword(hash, "wrongpassword"); err == nil {
+	if err := utils.CheckPassword(hash, "wrongpassword"); err == nil {
 		t.Fatal("expected error for wrong password")
 	}
 }
 
 func TestHashPasswordSalts(t *testing.T) {
-	a, err := HashPassword("same-password")
+	a, err := utils.HashPassword("same-password")
 	if err != nil {
 		t.Fatalf("hash a: %v", err)
 	}
-	b, err := HashPassword("same-password")
+	b, err := utils.HashPassword("same-password")
 	if err != nil {
 		t.Fatalf("hash b: %v", err)
 	}
@@ -36,7 +38,7 @@ func TestHashPasswordSalts(t *testing.T) {
 
 func TestCheckPasswordEmptyHash(t *testing.T) {
 	// Users created before auth have no password set; they must never authenticate.
-	if err := CheckPassword("", "anything"); err == nil {
+	if err := utils.CheckPassword("", "anything"); err == nil {
 		t.Fatal("expected error for empty hash")
 	}
 }

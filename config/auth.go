@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strconv"
 	"time"
@@ -13,7 +13,7 @@ import (
 func JWTSecret() []byte {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		log.Println("WARNING: JWT_SECRET is not set, using insecure dev fallback. Set JWT_SECRET in .env")
+		slog.Warn("JWT_SECRET is not set, using insecure dev fallback", "hint", "Set JWT_SECRET in .env")
 		secret = "dev-only-insecure-secret-change-me"
 	}
 	return []byte(secret)
@@ -27,7 +27,7 @@ func JWTTTL() time.Duration {
 	}
 	hours, err := strconv.Atoi(raw)
 	if err != nil || hours <= 0 {
-		log.Println("WARNING: invalid JWT_TTL_HOURS, falling back to 24h")
+		slog.Warn("Invalid JWT_TTL_HOURS, falling back to 24h", "value", raw)
 		return 24 * time.Hour
 	}
 	return time.Duration(hours) * time.Hour

@@ -33,6 +33,12 @@ type ResendVerificationRequest struct {
 	Email string `json:"email" binding:"required,email" example:"kaige@example.com"`
 }
 
+type VerifyOTPRequest struct {
+	Email string `json:"email" binding:"required,email" example:"kaige@example.com"`
+
+	Code string `json:"code" binding:"required,len=6,numeric" example:"482914"`
+}
+
 type AuthResponse struct {
 	Message string      `json:"message" example:"Logged in"`
 	Token   string      `json:"token,omitempty" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OCJ9.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlF"`

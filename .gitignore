@@ -16,6 +16,9 @@ coverage.html
 # Air live-reload
 tmp/
 
+# Uploaded files (avatars, served at /uploads)
+uploads/
+
 # Env with secrets (DATABASE_URL)
 .env
 .env.local

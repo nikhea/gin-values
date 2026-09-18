@@ -305,6 +305,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/verify-otp": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify email with OTP code",
+                "parameters": [
+                    {
+                        "description": "Email and 6-digit code",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.VerifyOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
         "/contacts/": {
             "get": {
                 "security": [
@@ -435,6 +480,116 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/contacts/import/csv": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Import contacts from a CSV file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Owner user ID",
+                        "name": "user_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "CSV file with header name,type,value",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ImportSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/contacts/import/json": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Import contacts from a JSON file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Owner user ID",
+                        "name": "user_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "JSON file with an array of {name,type,value}",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ImportSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
                         }
                     }
                 }
@@ -587,6 +742,62 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/contacts/{id}/avatar": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Upload a contact's avatar image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "9c9e6679-7425-40de-944b-e07fc1f90ae7",
+                        "description": "Contact ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Avatar image (.jpg, .jpeg, .png, .gif, .webp; max 5 MB)",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AvatarResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
                         }
                     }
                 }
@@ -828,6 +1039,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/{id}/avatar": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Upload a user's avatar image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "458622d8-daba-4252-8ce1-846277353139",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Avatar image (.jpg, .jpeg, .png, .gif, .webp; max 5 MB)",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AvatarResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{id}/profile": {
             "get": {
                 "security": [
@@ -1060,6 +1327,19 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.AvatarResponse": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string",
+                    "example": "/uploads/avatars/users/458622d8-daba-4252-8ce1-846277353139.png"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Avatar uploaded"
+                }
+            }
+        },
         "dto.ContactEnvelope": {
             "type": "object",
             "properties": {
@@ -1194,6 +1474,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ImportSummary": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.RowError"
+                    }
+                },
+                "failed": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "imported": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Import finished"
+                }
+            }
+        },
         "dto.LoginRequest": {
             "type": "object",
             "required": [
@@ -1313,6 +1616,19 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.RowError": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "invalid email value"
+                },
+                "row": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
         "dto.UpdateContactRequest": {
             "type": "object",
             "required": [
@@ -1392,9 +1708,30 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.VerifyOTPRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "482914"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "kaige@example.com"
+                }
+            }
+        },
         "models.Contact": {
             "type": "object",
             "properties": {
+                "avatar_url": {
+                    "type": "string",
+                    "example": "/uploads/avatars/contacts/9c9e6679-7425-40de-944b-e07fc1f90ae7.png"
+                },
                 "created_at": {
                     "type": "string"
                 },

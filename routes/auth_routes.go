@@ -15,6 +15,7 @@ func RegisterAuthRoutes(router *gin.Engine) {
 		auth.POST("/register", handlers.Register)
 		auth.POST("/login", handlers.Login)
 		auth.GET("/verify", handlers.VerifyEmail)
+		auth.POST("/verify-otp", handlers.VerifyOTP)
 		auth.POST("/resend-verification", handlers.ResendVerification)
 		auth.POST("/forgot-password", handlers.ForgotPassword)
 		auth.POST("/reset-password", handlers.ResetPassword)

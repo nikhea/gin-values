@@ -1,12 +1,14 @@
-package utils
+package tests
 
 import (
 	"encoding/hex"
 	"testing"
+
+	"gin-learn/utils"
 )
 
 func TestGenerateSecureToken(t *testing.T) {
-	a, err := GenerateSecureToken(32)
+	a, err := utils.GenerateSecureToken(32)
 	if err != nil {
 		t.Fatalf("GenerateSecureToken: %v", err)
 	}
@@ -17,7 +19,7 @@ func TestGenerateSecureToken(t *testing.T) {
 		t.Fatalf("not valid hex: %v", err)
 	}
 
-	b, err := GenerateSecureToken(32)
+	b, err := utils.GenerateSecureToken(32)
 	if err != nil {
 		t.Fatalf("GenerateSecureToken: %v", err)
 	}

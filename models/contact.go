@@ -21,6 +21,8 @@ type Contact struct {
 
 	Value string `json:"value" example:"kaige@work.com"`
 
+	AvatarURL string `gorm:"column:avatar_url" json:"avatar_url,omitempty" example:"/uploads/avatars/contacts/9c9e6679-7425-40de-944b-e07fc1f90ae7.png"`
+
 	CreatedAt time.Time `json:"created_at"`
 
 	UpdatedAt time.Time `json:"updated_at"`

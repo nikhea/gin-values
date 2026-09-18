@@ -21,6 +21,9 @@ func Setup() *gin.Engine {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	// Publicly served uploaded files (avatars): /uploads/avatars/...
+	router.Static("/uploads", "./uploads")
+
 	RegisterAuthRoutes(router)
 
 	protected := router.Group("/api")

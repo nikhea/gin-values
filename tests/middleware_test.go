@@ -1,4 +1,4 @@
-package middleware
+package tests
 
 import (
 	"net/http"
@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"gin-learn/middleware"
 	"gin-learn/utils"
 
 	"github.com/gin-gonic/gin"
@@ -16,9 +17,9 @@ import (
 func setupAuthTestRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.GET("/protected", AuthRequired(), func(c *gin.Context) {
-		id, _ := GetUserID(c)
-		email, _ := GetUserEmail(c)
+	r.GET("/protected", middleware.AuthRequired(), func(c *gin.Context) {
+		id, _ := middleware.GetUserID(c)
+		email, _ := middleware.GetUserEmail(c)
 		c.JSON(http.StatusOK, gin.H{"userID": id, "email": email})
 	})
 	return r
@@ -111,10 +112,10 @@ func TestGetUserIDWithoutMiddleware(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
-	if _, ok := GetUserID(c); ok {
+	if _, ok := middleware.GetUserID(c); ok {
 		t.Fatal("expected ok=false without AuthRequired")
 	}
-	if _, ok := GetUserEmail(c); ok {
+	if _, ok := middleware.GetUserEmail(c); ok {
 		t.Fatal("expected ok=false without AuthRequired")
 	}
 }

@@ -7,32 +7,40 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
-	"gin-learn/config"
 	"errors"
+	"gin-learn/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
+func fatal(msg string, err error) {
+	slog.Error(msg, "error", err)
+	os.Exit(1)
+}
+
 func main() {
+	config.InitLogger()
 	config.LoadEnv()
 
 	if len(os.Args) < 2 {
-		log.Fatal("usage: go run ./cmd/migrate [up|down|version|force <version>]")
+		slog.Error("usage: go run ./cmd/migrate [up|down|version|force <version>]")
+		os.Exit(1)
 	}
 
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		log.Fatal("DATABASE_URL is not set")
+		slog.Error("DATABASE_URL is not set")
+		os.Exit(1)
 	}
 
 	m, err := migrate.New("file://migrations", dsn)
 	if err != nil {
-		log.Fatal("Migrate init failed:", err)
+		fatal("Migrate init failed", err)
 	}
 	defer func() {
 		_, _ = m.Close()
@@ -45,7 +53,7 @@ func main() {
 				fmt.Println("Already up to date")
 				return
 			}
-			log.Fatal("Migrate up failed:", err)
+			fatal("Migrate up failed", err)
 		}
 		fmt.Println("Migrations up applied")
 	case "down":
@@ -54,7 +62,7 @@ func main() {
 				fmt.Println("Already at base")
 				return
 			}
-			log.Fatal("Migrate down failed:", err)
+			fatal("Migrate down failed", err)
 		}
 		fmt.Println("Migrations down applied")
 	case "version":
@@ -64,10 +72,11 @@ func main() {
 				fmt.Println("No migrations applied yet")
 				return
 			}
-			log.Fatal("Version failed:", err)
+			fatal("Version failed", err)
 		}
 		fmt.Printf("version=%d dirty=%v\n", v, dirty)
 	default:
-		log.Fatal("unknown command, use up|down|version")
+		slog.Error("unknown command, use up|down|version")
+		os.Exit(1)
 	}
 }

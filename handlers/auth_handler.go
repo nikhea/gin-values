@@ -24,6 +24,10 @@ func writeAuthError(c *gin.Context, err error) {
 		})
 	case errors.Is(err, services.ErrInvalidToken):
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	case errors.Is(err, services.ErrInvalidOTP):
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	case errors.Is(err, services.ErrTooManyAttempts):
+		c.JSON(http.StatusTooManyRequests, gin.H{"error": err.Error()})
 	case errors.Is(err, services.ErrAlreadyVerified):
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	default:
@@ -103,6 +107,35 @@ func Login(c *gin.Context) {
 func VerifyEmail(c *gin.Context) {
 	token := c.Query("token")
 	user, err := services.VerifyEmail(token)
+	if err != nil {
+		writeAuthError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Email verified. You can now log in",
+		"user":    user,
+	})
+}
+
+// VerifyOTP godoc
+// @Summary Verify email with OTP code
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.VerifyOTPRequest true "Email and 6-digit code"
+// @Success 200 {object} dto.AuthResponse
+// @Failure 400 {object} dto.ErrorEnvelope
+// @Failure 429 {object} dto.ErrorEnvelope
+// @Router /auth/verify-otp [post]
+func VerifyOTP(c *gin.Context) {
+	var req dto.VerifyOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := services.VerifyOTP(req.Email, req.Code)
 	if err != nil {
 		writeAuthError(c, err)
 		return

@@ -1,8 +1,10 @@
-package utils
+package tests
 
 import (
 	"testing"
 	"time"
+
+	"gin-learn/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -10,7 +12,7 @@ import (
 func TestGenerateAndParseToken(t *testing.T) {
 	t.Setenv("JWT_SECRET", "test-secret-for-jwt-unit-tests")
 
-	token, err := GenerateToken("user-123", "a@b.c")
+	token, err := utils.GenerateToken("user-123", "a@b.c")
 	if err != nil {
 		t.Fatalf("GenerateToken: %v", err)
 	}
@@ -18,7 +20,7 @@ func TestGenerateAndParseToken(t *testing.T) {
 		t.Fatal("expected non-empty token")
 	}
 
-	claims, err := ParseToken(token)
+	claims, err := utils.ParseToken(token)
 	if err != nil {
 		t.Fatalf("ParseToken: %v", err)
 	}
@@ -36,17 +38,17 @@ func TestGenerateAndParseToken(t *testing.T) {
 func TestParseTokenTampered(t *testing.T) {
 	t.Setenv("JWT_SECRET", "test-secret-for-jwt-unit-tests")
 
-	token, err := GenerateToken("user-123", "a@b.c")
+	token, err := utils.GenerateToken("user-123", "a@b.c")
 	if err != nil {
 		t.Fatalf("GenerateToken: %v", err)
 	}
-	if _, err := ParseToken(token + "tampered"); err == nil {
+	if _, err := utils.ParseToken(token + "tampered"); err == nil {
 		t.Fatal("expected error for tampered token")
 	}
-	if _, err := ParseToken("not.a.token"); err == nil {
+	if _, err := utils.ParseToken("not.a.token"); err == nil {
 		t.Fatal("expected error for malformed token")
 	}
-	if _, err := ParseToken(""); err == nil {
+	if _, err := utils.ParseToken(""); err == nil {
 		t.Fatal("expected error for empty token")
 	}
 }
@@ -54,13 +56,13 @@ func TestParseTokenTampered(t *testing.T) {
 func TestParseTokenWrongSecret(t *testing.T) {
 	t.Setenv("JWT_SECRET", "correct-secret")
 
-	token, err := GenerateToken("user-123", "a@b.c")
+	token, err := utils.GenerateToken("user-123", "a@b.c")
 	if err != nil {
 		t.Fatalf("GenerateToken: %v", err)
 	}
 
 	t.Setenv("JWT_SECRET", "different-secret")
-	if _, err := ParseToken(token); err == nil {
+	if _, err := utils.ParseToken(token); err == nil {
 		t.Fatal("expected error when secret differs")
 	}
 }
@@ -68,7 +70,7 @@ func TestParseTokenWrongSecret(t *testing.T) {
 func TestParseTokenExpired(t *testing.T) {
 	t.Setenv("JWT_SECRET", "test-secret-for-jwt-unit-tests")
 
-	claims := Claims{
+	claims := utils.Claims{
 		Email: "a@b.c",
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   "user-123",
@@ -80,7 +82,7 @@ func TestParseTokenExpired(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sign expired token: %v", err)
 	}
-	if _, err := ParseToken(expired); err == nil {
+	if _, err := utils.ParseToken(expired); err == nil {
 		t.Fatal("expected error for expired token")
 	}
 }

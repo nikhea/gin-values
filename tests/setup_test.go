@@ -8,11 +8,13 @@
 package tests
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
 
 	"gin-learn/config"
+	"gin-learn/jobs"
 	"gin-learn/models"
 
 	"github.com/gin-gonic/gin"
@@ -57,10 +59,22 @@ func requireTestDB(t *testing.T) {
 	}
 
 	config.DB = db
+
+	// Start River workers against the test database so service calls
+	// that enqueue email jobs work (and are actually worked) in tests.
+	// A previous test's client is stopped first; tests are sequential.
+	_ = jobs.Shutdown(context.Background())
+	if err := jobs.Setup(context.Background(), dsn); err != nil {
+		t.Fatalf("river setup: %v", err)
+	}
+
 	truncateAll(t)
 
 	gin.SetMode(gin.TestMode)
 	t.Cleanup(func() { truncateAll(t) })
+	t.Cleanup(func() { _ = jobs.Shutdown(context.Background()) })
+	// Uploaded test files land in tests/uploads (package working dir).
+	t.Cleanup(func() { _ = os.RemoveAll("uploads") })
 }
 
 func truncateAll(t *testing.T) {
@@ -68,7 +82,7 @@ func truncateAll(t *testing.T) {
 	if config.DB == nil {
 		return
 	}
-	if err := config.DB.Exec("TRUNCATE users, profiles, contacts RESTART IDENTITY CASCADE").Error; err != nil {
+	if err := config.DB.Exec("TRUNCATE users, profiles, contacts, river_job RESTART IDENTITY CASCADE").Error; err != nil {
 		t.Fatalf("truncate test tables: %v", err)
 	}
 }
