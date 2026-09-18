@@ -15,8 +15,303 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/forgot-password": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Request a password-reset email",
+                "parameters": [
+                    {
+                        "description": "Email payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ForgotPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Log in with email and password",
+                "parameters": [
+                    {
+                        "description": "Login payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get the authenticated user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AuthResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "Registration payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/resend-verification": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Resend verification email",
+                "parameters": [
+                    {
+                        "description": "Email payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResendVerificationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Reset password with a reset token",
+                "parameters": [
+                    {
+                        "description": "Reset payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify email address",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "1ef700f6a95416bb2a1d90a6ee3e8d62e78f9b3e084e405ab29fd722a57c96e8",
+                        "description": "Verification token from email",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
         "/contacts/": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -27,6 +322,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "458622d8-daba-4252-8ce1-846277353139",
                         "description": "Filter by user ID",
                         "name": "user_id",
                         "in": "query"
@@ -39,12 +335,14 @@ const docTemplate = `{
                             "other"
                         ],
                         "type": "string",
+                        "example": "email",
                         "description": "Filter by type",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "example": "kaige",
                         "description": "Search name and value",
                         "name": "search",
                         "in": "query"
@@ -52,6 +350,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "default": 1,
+                        "example": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
@@ -59,6 +358,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "default": 10,
+                        "example": 10,
                         "description": "Page size",
                         "name": "page_size",
                         "in": "query"
@@ -86,6 +386,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -137,6 +442,11 @@ const docTemplate = `{
         },
         "/contacts/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -147,6 +457,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "9c9e6679-7425-40de-944b-e07fc1f90ae7",
                         "description": "Contact ID",
                         "name": "id",
                         "in": "path",
@@ -175,6 +486,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -188,6 +504,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "9c9e6679-7425-40de-944b-e07fc1f90ae7",
                         "description": "Contact ID",
                         "name": "id",
                         "in": "path",
@@ -231,6 +548,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -241,6 +563,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "9c9e6679-7425-40de-944b-e07fc1f90ae7",
                         "description": "Contact ID",
                         "name": "id",
                         "in": "path",
@@ -271,6 +594,11 @@ const docTemplate = `{
         },
         "/users/": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -300,6 +628,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -345,6 +678,11 @@ const docTemplate = `{
         },
         "/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -355,6 +693,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "458622d8-daba-4252-8ce1-846277353139",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -383,6 +722,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -396,6 +740,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "458622d8-daba-4252-8ce1-846277353139",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -439,6 +784,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -449,6 +799,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "458622d8-daba-4252-8ce1-846277353139",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -479,6 +830,11 @@ const docTemplate = `{
         },
         "/users/{id}/profile": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -489,6 +845,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "458622d8-daba-4252-8ce1-846277353139",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -517,6 +874,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -530,6 +892,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "458622d8-daba-4252-8ce1-846277353139",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -573,6 +936,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -586,6 +954,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "458622d8-daba-4252-8ce1-846277353139",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -629,6 +998,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -639,6 +1013,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "458622d8-daba-4252-8ce1-846277353139",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -669,6 +1044,22 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Logged in"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OCJ9.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlF"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.User"
+                }
+            }
+        },
         "dto.ContactEnvelope": {
             "type": "object",
             "properties": {
@@ -707,7 +1098,8 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "Work email"
                 },
                 "type": {
                     "type": "string",
@@ -716,15 +1108,18 @@ const docTemplate = `{
                         "phone",
                         "address",
                         "other"
-                    ]
+                    ],
+                    "example": "email"
                 },
                 "user_id": {
                     "type": "string",
-                    "maxLength": 36
+                    "maxLength": 36,
+                    "example": "458622d8-daba-4252-8ce1-846277353139"
                 },
                 "value": {
                     "type": "string",
-                    "maxLength": 2048
+                    "maxLength": 2048,
+                    "example": "kaige@work.com"
                 }
             }
         },
@@ -733,19 +1128,23 @@ const docTemplate = `{
             "properties": {
                 "address": {
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 500,
+                    "example": "123 Main St, Lagos"
                 },
                 "avatar_url": {
                     "type": "string",
-                    "maxLength": 2048
+                    "maxLength": 2048,
+                    "example": "https://example.com/avatars/kaige.png"
                 },
                 "bio": {
                     "type": "string",
-                    "maxLength": 1000
+                    "maxLength": 1000,
+                    "example": "Gopher since 2021. Coffee first."
                 },
                 "phone": {
                     "type": "string",
-                    "maxLength": 32
+                    "maxLength": 32,
+                    "example": "+15551234567"
                 }
             }
         },
@@ -760,15 +1159,18 @@ const docTemplate = `{
                 "age": {
                     "type": "integer",
                     "maximum": 100,
-                    "minimum": 18
+                    "minimum": 18,
+                    "example": 30
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "kaige@example.com"
                 },
                 "name": {
                     "type": "string",
                     "maxLength": 50,
-                    "minLength": 3
+                    "minLength": 3,
+                    "example": "Kaige Saif"
                 }
             }
         },
@@ -777,6 +1179,37 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.ForgotPasswordRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "kaige@example.com"
+                }
+            }
+        },
+        "dto.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "kaige@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 1,
+                    "example": "supersecret123"
                 }
             }
         },
@@ -816,6 +1249,70 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "age",
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 18,
+                    "example": 30
+                },
+                "email": {
+                    "type": "string",
+                    "example": "kaige@example.com"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3,
+                    "example": "Kaige Saif"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8,
+                    "example": "supersecret123"
+                }
+            }
+        },
+        "dto.ResendVerificationRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "kaige@example.com"
+                }
+            }
+        },
+        "dto.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8,
+                    "example": "newsecret123"
+                },
+                "token": {
+                    "description": "Token may alternatively be supplied as ?token= query param.",
+                    "type": "string",
+                    "example": "9f2c4a1e6b4d4f8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b"
+                }
+            }
+        },
         "dto.UpdateContactRequest": {
             "type": "object",
             "required": [
@@ -825,7 +1322,8 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "Work email"
                 },
                 "type": {
                     "type": "string",
@@ -834,11 +1332,13 @@ const docTemplate = `{
                         "phone",
                         "address",
                         "other"
-                    ]
+                    ],
+                    "example": "phone"
                 },
                 "value": {
                     "type": "string",
-                    "maxLength": 2048
+                    "maxLength": 2048,
+                    "example": "+15551234567"
                 }
             }
         },
@@ -847,19 +1347,23 @@ const docTemplate = `{
             "properties": {
                 "address": {
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 500,
+                    "example": "123 Main St, Lagos"
                 },
                 "avatar_url": {
                     "type": "string",
-                    "maxLength": 2048
+                    "maxLength": 2048,
+                    "example": "https://example.com/avatars/kaige.png"
                 },
                 "bio": {
                     "type": "string",
-                    "maxLength": 1000
+                    "maxLength": 1000,
+                    "example": "Gopher since 2021. Coffee first."
                 },
                 "phone": {
                     "type": "string",
-                    "maxLength": 32
+                    "maxLength": 32,
+                    "example": "+15551234567"
                 }
             }
         },
@@ -895,22 +1399,27 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9c9e6679-7425-40de-944b-e07fc1f90ae7"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Work email"
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "email"
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "458622d8-daba-4252-8ce1-846277353139"
                 },
                 "value": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "kaige@work.com"
                 }
             }
         },
@@ -918,28 +1427,34 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123 Main St, Lagos"
                 },
                 "avatar_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://example.com/avatars/kaige.png"
                 },
                 "bio": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Gopher since 2021. Coffee first."
                 },
                 "created_at": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "7c9e6679-7425-40de-944b-e07fc1f90ae7"
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+15551234567"
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "458622d8-daba-4252-8ce1-846277353139"
                 }
             }
         },
@@ -947,19 +1462,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "age": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 30
                 },
                 "created_at": {
                     "type": "string"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "kaige@example.com"
+                },
+                "email_verified": {
+                    "type": "boolean",
+                    "example": true
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "458622d8-daba-4252-8ce1-846277353139"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kaige Saif"
                 },
                 "profile": {
                     "$ref": "#/definitions/models.Profile"
@@ -968,6 +1491,14 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and the JWT. Example: \"Bearer eyJhbGciOiJIUzI1NiJ9...\"",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
@@ -979,7 +1510,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{"http"},
 	Title:            "Gin Learn API",
-	Description:      "Users, profiles and contacts API.",
+	Description:      "Users, profiles and contacts API with JWT auth and email verification.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

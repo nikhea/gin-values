@@ -1,5 +1,16 @@
 basePath: /api
 definitions:
+  dto.AuthResponse:
+    properties:
+      message:
+        example: Logged in
+        type: string
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OCJ9.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlF
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
   dto.ContactEnvelope:
     properties:
       contact:
@@ -21,6 +32,7 @@ definitions:
   dto.CreateContactRequest:
     properties:
       name:
+        example: Work email
         maxLength: 100
         type: string
       type:
@@ -29,11 +41,14 @@ definitions:
         - phone
         - address
         - other
+        example: email
         type: string
       user_id:
+        example: 458622d8-daba-4252-8ce1-846277353139
         maxLength: 36
         type: string
       value:
+        example: kaige@work.com
         maxLength: 2048
         type: string
     required:
@@ -44,27 +59,34 @@ definitions:
   dto.CreateProfileRequest:
     properties:
       address:
+        example: 123 Main St, Lagos
         maxLength: 500
         type: string
       avatar_url:
+        example: https://example.com/avatars/kaige.png
         maxLength: 2048
         type: string
       bio:
+        example: Gopher since 2021. Coffee first.
         maxLength: 1000
         type: string
       phone:
+        example: "+15551234567"
         maxLength: 32
         type: string
     type: object
   dto.CreateUserRequest:
     properties:
       age:
+        example: 30
         maximum: 100
         minimum: 18
         type: integer
       email:
+        example: kaige@example.com
         type: string
       name:
+        example: Kaige Saif
         maxLength: 50
         minLength: 3
         type: string
@@ -77,6 +99,28 @@ definitions:
     properties:
       error:
         type: string
+    type: object
+  dto.ForgotPasswordRequest:
+    properties:
+      email:
+        example: kaige@example.com
+        type: string
+    required:
+    - email
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        example: kaige@example.com
+        type: string
+      password:
+        example: supersecret123
+        maxLength: 72
+        minLength: 1
+        type: string
+    required:
+    - email
+    - password
     type: object
   dto.MessageEnvelope:
     properties:
@@ -101,9 +145,58 @@ definitions:
       profile:
         $ref: '#/definitions/models.Profile'
     type: object
+  dto.RegisterRequest:
+    properties:
+      age:
+        example: 30
+        maximum: 100
+        minimum: 18
+        type: integer
+      email:
+        example: kaige@example.com
+        type: string
+      name:
+        example: Kaige Saif
+        maxLength: 50
+        minLength: 3
+        type: string
+      password:
+        example: supersecret123
+        maxLength: 72
+        minLength: 8
+        type: string
+    required:
+    - age
+    - email
+    - name
+    - password
+    type: object
+  dto.ResendVerificationRequest:
+    properties:
+      email:
+        example: kaige@example.com
+        type: string
+    required:
+    - email
+    type: object
+  dto.ResetPasswordRequest:
+    properties:
+      new_password:
+        example: newsecret123
+        maxLength: 72
+        minLength: 8
+        type: string
+      token:
+        description: Token may alternatively be supplied as ?token= query param.
+        example: 9f2c4a1e6b4d4f8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b
+        type: string
+    required:
+    - new_password
+    type: object
   dto.UpdateContactRequest:
     properties:
       name:
+        example: Work email
         maxLength: 100
         type: string
       type:
@@ -112,8 +205,10 @@ definitions:
         - phone
         - address
         - other
+        example: phone
         type: string
       value:
+        example: "+15551234567"
         maxLength: 2048
         type: string
     required:
@@ -123,15 +218,19 @@ definitions:
   dto.UpdateProfileRequest:
     properties:
       address:
+        example: 123 Main St, Lagos
         maxLength: 500
         type: string
       avatar_url:
+        example: https://example.com/avatars/kaige.png
         maxLength: 2048
         type: string
       bio:
+        example: Gopher since 2021. Coffee first.
         maxLength: 1000
         type: string
       phone:
+        example: "+15551234567"
         maxLength: 32
         type: string
     type: object
@@ -156,48 +255,66 @@ definitions:
       created_at:
         type: string
       id:
+        example: 9c9e6679-7425-40de-944b-e07fc1f90ae7
         type: string
       name:
+        example: Work email
         type: string
       type:
+        example: email
         type: string
       updated_at:
         type: string
       user_id:
+        example: 458622d8-daba-4252-8ce1-846277353139
         type: string
       value:
+        example: kaige@work.com
         type: string
     type: object
   models.Profile:
     properties:
       address:
+        example: 123 Main St, Lagos
         type: string
       avatar_url:
+        example: https://example.com/avatars/kaige.png
         type: string
       bio:
+        example: Gopher since 2021. Coffee first.
         type: string
       created_at:
         type: string
       id:
+        example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
         type: string
       phone:
+        example: "+15551234567"
         type: string
       updated_at:
         type: string
       user_id:
+        example: 458622d8-daba-4252-8ce1-846277353139
         type: string
     type: object
   models.User:
     properties:
       age:
+        example: 30
         type: integer
       created_at:
         type: string
       email:
+        example: kaige@example.com
         type: string
+      email_verified:
+        example: true
+        type: boolean
       id:
+        example: 458622d8-daba-4252-8ce1-846277353139
         type: string
       name:
+        example: Kaige Saif
         type: string
       profile:
         $ref: '#/definitions/models.Profile'
@@ -207,14 +324,201 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: Users, profiles and contacts API.
+  description: Users, profiles and contacts API with JWT auth and email verification.
   title: Gin Learn API
   version: "1.0"
 paths:
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Request a password-reset email
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Log in with email and password
+      tags:
+      - auth
+  /auth/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Get the authenticated user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Registration payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Register a new user
+      tags:
+      - auth
+  /auth/resend-verification:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResendVerificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Resend verification email
+      tags:
+      - auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Reset payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Reset password with a reset token
+      tags:
+      - auth
+  /auth/verify:
+    get:
+      parameters:
+      - description: Verification token from email
+        example: 1ef700f6a95416bb2a1d90a6ee3e8d62e78f9b3e084e405ab29fd722a57c96e8
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Verify email address
+      tags:
+      - auth
   /contacts/:
     get:
       parameters:
       - description: Filter by user ID
+        example: 458622d8-daba-4252-8ce1-846277353139
         in: query
         name: user_id
         type: string
@@ -224,20 +528,24 @@ paths:
         - phone
         - address
         - other
+        example: email
         in: query
         name: type
         type: string
       - description: Search name and value
+        example: kaige
         in: query
         name: search
         type: string
       - default: 1
         description: Page number
+        example: 1
         in: query
         name: page
         type: integer
       - default: 10
         description: Page size
+        example: 10
         in: query
         name: page_size
         type: integer
@@ -256,6 +564,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: List contacts with pagination and filters
       tags:
       - contacts
@@ -288,6 +598,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Create contact
       tags:
       - contacts
@@ -295,6 +607,7 @@ paths:
     delete:
       parameters:
       - description: Contact ID
+        example: 9c9e6679-7425-40de-944b-e07fc1f90ae7
         in: path
         name: id
         required: true
@@ -314,12 +627,15 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Delete contact
       tags:
       - contacts
     get:
       parameters:
       - description: Contact ID
+        example: 9c9e6679-7425-40de-944b-e07fc1f90ae7
         in: path
         name: id
         required: true
@@ -339,6 +655,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Get contact by ID
       tags:
       - contacts
@@ -347,6 +665,7 @@ paths:
       - application/json
       parameters:
       - description: Contact ID
+        example: 9c9e6679-7425-40de-944b-e07fc1f90ae7
         in: path
         name: id
         required: true
@@ -376,6 +695,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Update contact
       tags:
       - contacts
@@ -396,6 +717,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: List users
       tags:
       - users
@@ -424,6 +747,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Create user
       tags:
       - users
@@ -431,6 +756,7 @@ paths:
     delete:
       parameters:
       - description: User ID
+        example: 458622d8-daba-4252-8ce1-846277353139
         in: path
         name: id
         required: true
@@ -450,12 +776,15 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Delete user
       tags:
       - users
     get:
       parameters:
       - description: User ID
+        example: 458622d8-daba-4252-8ce1-846277353139
         in: path
         name: id
         required: true
@@ -475,6 +804,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Get user by ID
       tags:
       - users
@@ -483,6 +814,7 @@ paths:
       - application/json
       parameters:
       - description: User ID
+        example: 458622d8-daba-4252-8ce1-846277353139
         in: path
         name: id
         required: true
@@ -512,6 +844,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Update user
       tags:
       - users
@@ -519,6 +853,7 @@ paths:
     delete:
       parameters:
       - description: User ID
+        example: 458622d8-daba-4252-8ce1-846277353139
         in: path
         name: id
         required: true
@@ -538,12 +873,15 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Delete profile by user ID
       tags:
       - profiles
     get:
       parameters:
       - description: User ID
+        example: 458622d8-daba-4252-8ce1-846277353139
         in: path
         name: id
         required: true
@@ -563,6 +901,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Get profile by user ID
       tags:
       - profiles
@@ -571,6 +911,7 @@ paths:
       - application/json
       parameters:
       - description: User ID
+        example: 458622d8-daba-4252-8ce1-846277353139
         in: path
         name: id
         required: true
@@ -600,6 +941,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Create profile for user
       tags:
       - profiles
@@ -608,6 +951,7 @@ paths:
       - application/json
       parameters:
       - description: User ID
+        example: 458622d8-daba-4252-8ce1-846277353139
         in: path
         name: id
         required: true
@@ -637,9 +981,18 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
       summary: Update profile by user ID
       tags:
       - profiles
 schemes:
 - http
+securityDefinitions:
+  BearerAuth:
+    description: 'Type "Bearer" followed by a space and the JWT. Example: "Bearer
+      eyJhbGciOiJIUzI1NiJ9..."'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

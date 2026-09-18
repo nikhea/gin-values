@@ -6,10 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RegisterContactRoutes mounts contact endpoints on their own
-// top-level group: /api/contacts.
-func RegisterContactRoutes(router *gin.Engine) {
-	contacts := router.Group("/api/contacts")
+// RegisterContactRoutes mounts contact endpoints on the protected
+// group: /api/contacts (requires JWT via AuthRequired).
+func RegisterContactRoutes(router *gin.RouterGroup) {
+	contacts := router.Group("/contacts")
 	{
 		contacts.POST("/", handlers.CreateContact)
 		contacts.GET("/", handlers.GetContacts)

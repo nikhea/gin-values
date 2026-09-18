@@ -38,6 +38,7 @@ func writeContactError(c *gin.Context, err error, notFoundMsg string) {
 // @Tags contacts
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param request body dto.CreateContactRequest true "Contact payload"
 // @Success 201 {object} dto.ContactEnvelope
 // @Failure 400 {object} dto.ErrorEnvelope
@@ -69,11 +70,12 @@ func CreateContact(c *gin.Context) {
 // @Summary List contacts with pagination and filters
 // @Tags contacts
 // @Produce json
-// @Param user_id query string false "Filter by user ID"
-// @Param type query string false "Filter by type" Enums(email, phone, address, other)
-// @Param search query string false "Search name and value"
-// @Param page query int false "Page number" default(1)
-// @Param page_size query int false "Page size" default(10)
+// @Security BearerAuth
+// @Param user_id query string false "Filter by user ID" example(458622d8-daba-4252-8ce1-846277353139)
+// @Param type query string false "Filter by type" Enums(email, phone, address, other) example(email)
+// @Param search query string false "Search name and value" example(kaige)
+// @Param page query int false "Page number" default(1) example(1)
+// @Param page_size query int false "Page size" default(10) example(10)
 // @Success 200 {object} dto.ContactsEnvelope
 // @Failure 400 {object} dto.ErrorEnvelope
 // @Failure 500 {object} dto.ErrorEnvelope
@@ -107,7 +109,8 @@ func GetContacts(c *gin.Context) {
 // @Summary Get contact by ID
 // @Tags contacts
 // @Produce json
-// @Param id path string true "Contact ID"
+// @Security BearerAuth
+// @Param id path string true "Contact ID" example(9c9e6679-7425-40de-944b-e07fc1f90ae7)
 // @Success 200 {object} models.Contact
 // @Failure 404 {object} dto.MessageEnvelope
 // @Failure 500 {object} dto.ErrorEnvelope
@@ -127,7 +130,8 @@ func GetContact(c *gin.Context) {
 // @Tags contacts
 // @Accept json
 // @Produce json
-// @Param id path string true "Contact ID"
+// @Security BearerAuth
+// @Param id path string true "Contact ID" example(9c9e6679-7425-40de-944b-e07fc1f90ae7)
 // @Param request body dto.UpdateContactRequest true "Contact payload"
 // @Success 200 {object} models.Contact
 // @Failure 400 {object} dto.ErrorEnvelope
@@ -156,7 +160,8 @@ func UpdateContact(c *gin.Context) {
 // @Summary Delete contact
 // @Tags contacts
 // @Produce json
-// @Param id path string true "Contact ID"
+// @Security BearerAuth
+// @Param id path string true "Contact ID" example(9c9e6679-7425-40de-944b-e07fc1f90ae7)
 // @Success 200 {object} dto.MessageEnvelope
 // @Failure 404 {object} dto.MessageEnvelope
 // @Failure 500 {object} dto.ErrorEnvelope

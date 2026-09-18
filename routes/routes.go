@@ -11,6 +11,9 @@ import (
 )
 
 // Setup registers all API routes and returns the configured router.
+//
+// /api/auth/* is public (register, login, verify, password reset).
+// Everything else requires a JWT via the Authorization: Bearer header.
 func Setup() *gin.Engine {
 	router := gin.Default()
 
@@ -18,14 +21,19 @@ func Setup() *gin.Engine {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	base := "/api"
-	api := router.Group(base + "/users")
-	{
-		RegisterUserRoutes(api)
-		RegisterProfileRoutes(api)
-	}
+	RegisterAuthRoutes(router)
 
-	RegisterContactRoutes(router)
+	protected := router.Group("/api")
+	protected.Use(middleware.AuthRequired())
+	{
+		users := protected.Group("/users")
+		{
+			RegisterUserRoutes(users)
+			RegisterProfileRoutes(users)
+		}
+
+		RegisterContactRoutes(protected)
+	}
 
 	return router
 }

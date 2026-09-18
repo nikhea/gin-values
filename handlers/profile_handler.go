@@ -19,7 +19,8 @@ var _ = models.Profile{}
 // @Tags profiles
 // @Accept json
 // @Produce json
-// @Param id path string true "User ID"
+// @Security BearerAuth
+// @Param id path string true "User ID" example(458622d8-daba-4252-8ce1-846277353139)
 // @Param request body dto.CreateProfileRequest true "Profile payload"
 // @Success 201 {object} dto.ProfileEnvelope
 // @Failure 400 {object} dto.ErrorEnvelope
@@ -61,7 +62,8 @@ func CreateProfile(c *gin.Context) {
 // @Summary Get profile by user ID
 // @Tags profiles
 // @Produce json
-// @Param id path string true "User ID"
+// @Security BearerAuth
+// @Param id path string true "User ID" example(458622d8-daba-4252-8ce1-846277353139)
 // @Success 200 {object} models.Profile
 // @Failure 404 {object} dto.MessageEnvelope
 // @Failure 500 {object} dto.ErrorEnvelope
@@ -91,7 +93,8 @@ func GetProfile(c *gin.Context) {
 // @Tags profiles
 // @Accept json
 // @Produce json
-// @Param id path string true "User ID"
+// @Security BearerAuth
+// @Param id path string true "User ID" example(458622d8-daba-4252-8ce1-846277353139)
 // @Param request body dto.UpdateProfileRequest true "Profile payload"
 // @Success 200 {object} models.Profile
 // @Failure 400 {object} dto.ErrorEnvelope
@@ -130,7 +133,8 @@ func UpdateProfile(c *gin.Context) {
 // @Summary Delete profile by user ID
 // @Tags profiles
 // @Produce json
-// @Param id path string true "User ID"
+// @Security BearerAuth
+// @Param id path string true "User ID" example(458622d8-daba-4252-8ce1-846277353139)
 // @Success 200 {object} dto.MessageEnvelope
 // @Failure 404 {object} dto.MessageEnvelope
 // @Failure 500 {object} dto.ErrorEnvelope

@@ -16,6 +16,7 @@ import (
 // @Tags users
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param request body dto.CreateUserRequest true "User payload"
 // @Success 201 {object} dto.UserEnvelope
 // @Failure 400 {object} dto.ErrorEnvelope
@@ -49,6 +50,7 @@ func CreateUser(c *gin.Context) {
 // @Summary List users
 // @Tags users
 // @Produce json
+// @Security BearerAuth
 // @Success 200 {object} dto.UsersEnvelope
 // @Failure 404 {object} dto.MessageEnvelope
 // @Failure 500 {object} dto.ErrorEnvelope
@@ -80,7 +82,8 @@ func GetUsers(c *gin.Context) {
 // @Summary Get user by ID
 // @Tags users
 // @Produce json
-// @Param id path string true "User ID"
+// @Security BearerAuth
+// @Param id path string true "User ID" example(458622d8-daba-4252-8ce1-846277353139)
 // @Success 200 {object} models.User
 // @Failure 404 {object} dto.MessageEnvelope
 // @Failure 500 {object} dto.ErrorEnvelope
@@ -110,7 +113,8 @@ func GetUser(c *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param id path string true "User ID"
+// @Security BearerAuth
+// @Param id path string true "User ID" example(458622d8-daba-4252-8ce1-846277353139)
 // @Param request body dto.CreateUserRequest true "User payload"
 // @Success 200 {object} models.User
 // @Failure 400 {object} dto.ErrorEnvelope
@@ -149,7 +153,8 @@ func UpdateUser(c *gin.Context) {
 // @Summary Delete user
 // @Tags users
 // @Produce json
-// @Param id path string true "User ID"
+// @Security BearerAuth
+// @Param id path string true "User ID" example(458622d8-daba-4252-8ce1-846277353139)
 // @Success 200 {object} dto.MessageEnvelope
 // @Failure 404 {object} dto.MessageEnvelope
 // @Failure 500 {object} dto.ErrorEnvelope

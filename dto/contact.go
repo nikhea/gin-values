@@ -10,23 +10,23 @@ var phoneRegexp = regexp.MustCompile(`^\+?[0-9][0-9\s\-().]{5,20}$`)
 
 // CreateContactRequest creates a contact for a user.
 type CreateContactRequest struct {
-	UserID string `json:"user_id" binding:"required,max=36"`
+	UserID string `json:"user_id" binding:"required,max=36" example:"458622d8-daba-4252-8ce1-846277353139"`
 
-	Name string `json:"name" binding:"omitempty,max=100"`
+	Name string `json:"name" binding:"omitempty,max=100" example:"Work email"`
 
-	Type string `json:"type" binding:"required,oneof=email phone address other"`
+	Type string `json:"type" binding:"required,oneof=email phone address other" example:"email" enums:"email,phone,address,other"`
 
-	Value string `json:"value" binding:"required,max=2048"`
+	Value string `json:"value" binding:"required,max=2048" example:"kaige@work.com"`
 }
 
 // UpdateContactRequest replaces a contact's editable fields.
 // UserID is immutable and therefore not part of the payload.
 type UpdateContactRequest struct {
-	Name string `json:"name" binding:"omitempty,max=100"`
+	Name string `json:"name" binding:"omitempty,max=100" example:"Work email"`
 
-	Type string `json:"type" binding:"required,oneof=email phone address other"`
+	Type string `json:"type" binding:"required,oneof=email phone address other" example:"phone" enums:"email,phone,address,other"`
 
-	Value string `json:"value" binding:"required,max=2048"`
+	Value string `json:"value" binding:"required,max=2048" example:"+15551234567"`
 }
 
 // ContactFilter carries the list endpoint's filter query params.
