@@ -37,7 +37,20 @@ func main() {
 	}
 
 	router := routes.Setup()
-	srv := &http.Server{Addr: ":8080", Handler: router}
+
+	// Timeouts bound slow-client (Slowloris) abuse. Port from APP_PORT.
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		port = "8080"
+	}
+	srv := &http.Server{
+		Addr:              ":" + port,
+		Handler:           router,
+		ReadTimeout:       10 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -45,7 +58,7 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-	slog.Info("Server listening", "addr", ":8080")
+	slog.Info("Server listening", "addr", ":"+port)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

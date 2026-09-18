@@ -822,6 +822,31 @@ const docTemplate = `{
                 }
             }
         },
+        "/readyz": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Readiness probe (database + job queue)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
         "/users/": {
             "get": {
                 "security": [

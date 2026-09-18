@@ -4,14 +4,15 @@ Mirrors the repo layout. Start with `main.md` + `go.mod.md`, then follow the req
 
 ## Index
 
-- `main.md`, `go.mod.md`, `Dockerfile.md`, `docker-compose.md`, `cmd/migrate-main.md`, `docs-generated.md`
+- `main.md`, `go.mod.md`, `makefile.md`, `ci-lint.md`, `Dockerfile.md`, `docker-compose.md`, `cmd/migrate-main.md`, `docs-generated.md`
+- `PRODUCTION.md` (top-level `docs/`) — production runbook: secrets, TLS, migrations, backups, jobs, observability
 - `config/`: `logger.md`, `env.md`, `database.md`, `migrate.md`, `auth.md`, `mail.md`
 - `models/`: `users.md`, `profile.md`, `contact.md`
 - `dto/`: `auth.md`, `user-dtos.md`, `contact.md`, `profile.md`, `pagination.md`, `responses.md`, `import.md`
 - `repository/`: `user-repository.md`, `profile-repository.md`, `contact-repository.md`
 - `service/`: `auth-service.md`, `user-service.md`, `profile-service.md`, `contact-service.md`, `contact-import-service.md`, `avatar-service.md`
-- `handlers/`: `auth-handler.md`, `user-handler.md`, `profile-handler.md`, `contact-handler.md`, `upload-handlers.md`, `health-handler.md`
-- `middleware/`: `auth.md`, `request-id.md`
+- `handlers/`: `auth-handler.md`, `user-handler.md`, `profile-handler.md`, `contact-handler.md`, `upload-handlers.md`, `health-handler.md`, `errors-probes.md`
+- `middleware/`: `auth.md`, `request-id.md`, `rate-limit.md`
 - `routes/`: `routes.md`, `auth-routes.md`, `user-routes.md`, `profile-routes.md`, `contact-routes.md`
 - `utils/`: `jwt.md`, `password.md`, `token.md`, `otp.md`, `mailer.md`, `email-templates.md`, `templates-verification.md`, `templates-reset.md`, `file-upload.md`
 - `jobs/jobs.md`

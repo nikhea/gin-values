@@ -9,4 +9,6 @@ By project convention all tests live in `tests/` (`package tests`), importing th
 - `mailer_test.go` — log-only mode without SMTP creds, link formats, builders (subject/text/HTML), multipart disabled send (`utils/mailer.md`, `utils/email_templates.md`).
 - `middleware_test.go` — `AuthRequired` table test (missing/empty/wrong-scheme/garbage/wrong-secret/expired → 401; `Bearer` and bare token → 200 with context propagated) + helpers without middleware (`middleware/auth.md`).
 - `contact_test.go` — every `ValidateContactValue` branch incl. `*ValidationError` type (`dto/contact.md`).
-- `jobs_test.go` — `Kind()` string, worker delivery (no DB), enqueue without setup errors (`jobs/jobs.md`).
+- `jobs_test.go` — `Kind()` string, worker delivery (no DB), enqueue without setup errors, cleanup worker against the test DB (`jobs/jobs.md`).
+- `rate_limit_test.go` — allow-then-429 with `Retry-After`, env override, window refill (`middleware/rate-limit.md`).
+- `probes_test.go` — `/health` 200, `/readyz` 200 with DB+River, CORS allow/deny/disabled (`handlers/errors-probes.md`, `routes/routes.md`).

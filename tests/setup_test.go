@@ -38,6 +38,9 @@ func requireTestDB(t *testing.T) {
 
 	t.Setenv("JWT_SECRET", "test-secret-for-integration-tests")
 	t.Setenv("JWT_TTL_HOURS", "24")
+	// Disable rate limiting for the suite (all requests share one test IP).
+	t.Setenv("RATE_LIMIT_AUTH_PER_MINUTE", "100000")
+	t.Setenv("RATE_LIMIT_API_PER_MINUTE", "100000")
 	// Never send real email from tests: the mailer logs and succeeds.
 	t.Setenv("EMAIL_ADDRESS", "")
 	t.Setenv("EMAIL_PASSWORD", "")
@@ -103,7 +106,7 @@ func tryCreateTestDatabase(dsn string) bool {
 	if err != nil {
 		return false
 	}
-	defer sqlDB.Close()
+	defer func() { _ = sqlDB.Close() }()
 	// Ignore error: it already exists in the common retry case.
 	_ = admin.Exec(`CREATE DATABASE "` + name + `"`).Error
 	return true

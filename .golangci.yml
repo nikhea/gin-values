@@ -1,0 +1,40 @@
+# golangci-lint v2 config. Run locally with `make lint`.
+version: "2"
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - ineffassign
+    - misspell
+    - revive
+    - unconvert
+    - whitespace
+  settings:
+    goimports:
+      local-prefixes: gin-learn
+    revive:
+      rules:
+        - name: exported
+          disabled: true # API docs live in Swagger annotations + docs/code instead.
+        - name: package-comments
+          disabled: true
+        - name: var-naming
+          disabled: true # MixedCase context keys (userID) are intentional.
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    paths:
+      # Generated Swagger output is never hand-edited.
+      - docs/
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - revive
+  max-issues-per-linter: 0
+  max-same-issues: 0

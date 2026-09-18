@@ -28,9 +28,7 @@ func writeContactError(c *gin.Context, err error, notFoundMsg string) {
 		})
 		return
 	}
-	c.JSON(http.StatusInternalServerError, gin.H{
-		"error": err.Error(),
-	})
+	internalError(c, err)
 }
 
 // CreateContact godoc
@@ -92,9 +90,7 @@ func GetContacts(c *gin.Context) {
 
 	contacts, total, err := services.ListContacts(filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 

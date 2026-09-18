@@ -34,9 +34,7 @@ func CreateUser(c *gin.Context) {
 
 	user, err := services.CreateUser(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 
@@ -58,9 +56,7 @@ func CreateUser(c *gin.Context) {
 func GetUsers(c *gin.Context) {
 	users, err := services.GetUsers()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 
@@ -99,9 +95,7 @@ func GetUser(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 
@@ -140,9 +134,7 @@ func UpdateUser(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 
@@ -169,9 +161,7 @@ func DeleteUser(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 

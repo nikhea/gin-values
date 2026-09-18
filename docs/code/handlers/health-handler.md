@@ -1,7 +1,7 @@
 # `handlers/health_handler.go`
 
-Public liveness probe for Docker healthchecks and load balancers.
+Public liveness/readiness probes for Docker healthchecks and load balancers. See `handlers/errors-probes.md` for details.
 
-## `Health`
+- `Health` — `GET /health`, no auth, no DB touch.
+- `Readyz` — `GET /readyz`, requires Postgres ping + live River client (503 otherwise).
 
-`GET /health` (registered directly in `routes/routes.go`, outside the auth groups) → `200 {"status": "ok"}`. No auth, no DB touch — it only proves the process serves HTTP.

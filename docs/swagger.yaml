@@ -896,6 +896,22 @@ paths:
       summary: Health check
       tags:
       - health
+  /readyz:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Readiness probe (database + job queue)
+      tags:
+      - health
   /users/:
     get:
       produces:

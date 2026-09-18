@@ -13,6 +13,8 @@ services:
       - gocache:/root/.cache/go-build
     environment:
       GIN_MODE: debug
+      # Dev only: permits the default/dev JWT secret. Never set in prod.
+      ALLOW_INSECURE_JWT: "true"
     # Shorter healthcheck grace: Air needs one initial build first.
     healthcheck:
       start_period: 60s

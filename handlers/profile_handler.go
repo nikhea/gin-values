@@ -46,9 +46,7 @@ func CreateProfile(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 
@@ -79,9 +77,7 @@ func GetProfile(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 
@@ -120,9 +116,7 @@ func UpdateProfile(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 
@@ -149,9 +143,7 @@ func DeleteProfile(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		internalError(c, err)
 		return
 	}
 

@@ -31,7 +31,7 @@ func writeAuthError(c *gin.Context, err error) {
 	case errors.Is(err, services.ErrAlreadyVerified):
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	default:
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, err)
 	}
 }
 

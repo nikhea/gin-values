@@ -45,7 +45,7 @@ func importContacts(c *gin.Context, ext string, parse func(string, io.Reader) (*
 		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot read uploaded file"})
 		return
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 
 	summary, err := parse(userID, src)
 	if err != nil {

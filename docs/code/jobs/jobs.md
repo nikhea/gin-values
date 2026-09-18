@@ -18,6 +18,10 @@ Background email delivery with River (Postgres-backed job queue), so SMTP latenc
 - `EnqueueSendEmail(ctx, to, subject, body, html)` — errors if the client isn't started.
 - `EnqueueVerificationEmail(ctx, to, name, token, otp)` / `EnqueuePasswordResetEmail(ctx, to, name, token)` — build content via `utils` builders, then enqueue.
 
+## Retention
+
+- `CompletedJobRetention = 7 days`; `CleanupArgs` (`"purge_completed_jobs"`) + `CleanupWorker` delete `completed`/`discarded` rows older than that. Registered as a daily River periodic job (`PeriodicInterval(24h)`, ID `purge-completed-jobs` — idempotent across replicas).
+
 ## Notes
 
 - River uses its own pgx pool alongside GORM — see `config/database.md`.

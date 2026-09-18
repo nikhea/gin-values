@@ -1,8 +1,6 @@
 package dto
 
-
 type UpdateUserRequest struct {
-
 	Name string `json:"name" binding:"required,min=3,max=50" example:"Kaige Saif"`
 
 	Email string `json:"email" binding:"required,email" example:"kaige@example.com"`

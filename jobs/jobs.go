@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"gin-learn/utils"
 
@@ -22,6 +23,10 @@ import (
 
 // QueueDefaultWorkers caps concurrent email sends.
 const QueueDefaultWorkers = 10
+
+// CompletedJobRetention is how long finished (completed/discarded) River
+// jobs are kept for inspection before the daily purge deletes them.
+const CompletedJobRetention = 7 * 24 * time.Hour
 
 var (
 	// Pool is River's dedicated pgx pool (separate from GORM's).
@@ -53,6 +58,34 @@ func (w *SendEmailWorker) Work(ctx context.Context, job *river.Job[SendEmailArgs
 	return utils.SendMail(job.Args.To, job.Args.Subject, job.Args.Body, job.Args.HTML)
 }
 
+// CleanupArgs triggers the daily purge of old finished River jobs.
+type CleanupArgs struct{}
+
+// Kind implements river.JobArgs.
+func (CleanupArgs) Kind() string { return "purge_completed_jobs" }
+
+// CleanupWorker deletes completed/discarded jobs older than
+// CompletedJobRetention so river_job can't grow unboundedly.
+type CleanupWorker struct {
+	river.WorkerDefaults[CleanupArgs]
+}
+
+// Work implements river.Worker.
+func (w *CleanupWorker) Work(ctx context.Context, job *river.Job[CleanupArgs]) error {
+	if Pool == nil {
+		return fmt.Errorf("jobs: pool not started")
+	}
+	cutoff := time.Now().Add(-CompletedJobRetention)
+	tag, err := Pool.Exec(ctx,
+		`DELETE FROM river_job WHERE finalized_at < $1 AND state IN ('completed', 'discarded')`,
+		cutoff)
+	if err != nil {
+		return fmt.Errorf("jobs: purge completed: %w", err)
+	}
+	slog.Info("Purged old river jobs", "rows", tag.RowsAffected())
+	return nil
+}
+
 // Setup connects River, migrates its schema, registers workers and
 // starts working jobs. Call once at boot (and in integration tests
 // with the test database URL).
@@ -78,6 +111,7 @@ func Setup(ctx context.Context, databaseURL string) error {
 
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &SendEmailWorker{})
+	river.AddWorker(workers, &CleanupWorker{})
 
 	client, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
 		Queues: map[string]river.QueueConfig{
@@ -93,6 +127,14 @@ func Setup(ctx context.Context, databaseURL string) error {
 		pool.Close()
 		return fmt.Errorf("jobs: start: %w", err)
 	}
+
+	// Daily purge of old finished jobs (unique ID: a second replica
+	// registering the same schedule is a no-op, not a duplicate).
+	client.PeriodicJobs().Add(river.NewPeriodicJob(
+		river.PeriodicInterval(24*time.Hour),
+		func() (river.JobArgs, *river.InsertOpts) { return CleanupArgs{}, nil },
+		&river.PeriodicJobOpts{ID: "purge-completed-jobs"},
+	))
 
 	Pool = pool
 	Client = client

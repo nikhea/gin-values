@@ -36,11 +36,11 @@ func uploadAvatar(c *gin.Context, formKey, subdir string, link func(string) (any
 
 	urlPath, diskPath, err := utils.AvatarTarget(subdir, file.Filename)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, err)
 		return
 	}
 	if err := c.SaveUploadedFile(file, diskPath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to store avatar"})
+		internalError(c, err)
 		return
 	}
 
@@ -50,7 +50,7 @@ func uploadAvatar(c *gin.Context, formKey, subdir string, link func(string) (any
 			c.JSON(http.StatusNotFound, gin.H{"message": "Not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, err)
 		return
 	}
 
