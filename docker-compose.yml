@@ -1,0 +1,54 @@
+# Base stack: shared Postgres + API skeleton.
+# Run production:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Run development: docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_DB: gin_app
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d gin_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      # Overridden per environment (development / production).
+      target: production
+    depends_on:
+      db:
+        condition: service_healthy
+    # Pin Docker's embedded DNS so service names (e.g. db) resolve even
+    # when the host's DNS forwarders are unavailable.
+    dns:
+      - 127.0.0.11
+    environment:
+      DATABASE_URL: postgresql://admin:adminpassword@db:5432/gin_app?sslmode=disable
+      APP_URL: http://localhost:8080
+      # Override in production! Generate with: openssl rand -hex 32
+      JWT_SECRET: ${JWT_SECRET:-dev-only-insecure-secret-change-me}
+      JWT_TTL_HOURS: ${JWT_TTL_HOURS:-24}
+      EMAIL_SERVICE: ${EMAIL_SERVICE:-}
+      EMAIL_ADDRESS: ${EMAIL_ADDRESS:-}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  pgdata:
+  uploads:

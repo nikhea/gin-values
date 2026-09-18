@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"gin-learn/handlers"
 	"gin-learn/middleware"
 
 	_ "gin-learn/docs"
@@ -20,6 +21,9 @@ func Setup() *gin.Engine {
 	router.Use(middleware.RequestID())
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// Liveness probe (public, no auth): used by Docker healthchecks.
+	router.GET("/health", handlers.Health)
 
 	// Publicly served uploaded files (avatars): /uploads/avatars/...
 	router.Static("/uploads", "./uploads")

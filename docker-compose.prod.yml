@@ -1,0 +1,9 @@
+# Production override: hardened runtime settings.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+services:
+  api:
+    build:
+      target: production
+    restart: unless-stopped
+    environment:
+      GIN_MODE: release

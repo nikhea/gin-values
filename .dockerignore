@@ -1,0 +1,9 @@
+.git/
+tmp/
+uploads/
+.env
+.env.*
+.vscode/
+.idea/
+*.test
+coverage.txt

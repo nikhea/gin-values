@@ -1,0 +1,21 @@
+# Development override: live-reload API with the source bind-mounted.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+services:
+  api:
+    build:
+      target: development
+    # Live source (Air rebuilds on save); the named volume keeps uploads
+    # out of the bind mount.
+    volumes:
+      - .:/app
+      - uploads:/app/uploads
+      # Isolate the container build cache from the host.
+      - gocache:/root/.cache/go-build
+    environment:
+      GIN_MODE: debug
+    # Shorter healthcheck grace: Air needs one initial build first.
+    healthcheck:
+      start_period: 60s
+
+volumes:
+  gocache:

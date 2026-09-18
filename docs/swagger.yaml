@@ -884,6 +884,18 @@ paths:
       summary: Import contacts from a JSON file
       tags:
       - contacts
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      summary: Health check
+      tags:
+      - health
   /users/:
     get:
       produces:
