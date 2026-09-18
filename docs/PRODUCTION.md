@@ -1,6 +1,6 @@
 # Production runbook
 
-Checklist and operating notes for running Gin Learn in production. Start from `.env.example` — every variable is documented there.
+Checklist and operating notes for running Grip in production. Start from `.env.example` — every variable is documented there.
 
 ## 1. Pre-deploy checklist
 

@@ -17,6 +17,18 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-redispassword}"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     build:
       context: .
@@ -24,6 +36,8 @@ services:
       target: production
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     # Pin Docker's embedded DNS so service names (e.g. db) resolve even
     # when the host's DNS forwarders are unavailable.
@@ -38,6 +52,10 @@ services:
       EMAIL_SERVICE: ${EMAIL_SERVICE:-}
       EMAIL_ADDRESS: ${EMAIL_ADDRESS:-}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+      REDIS_ADDR: redis:6379
+      # Change in production! Must match the redis service password.
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redispassword}
+      REDIS_DB: ${REDIS_DB:-0}
     ports:
       - "8080:8080"
     volumes:
@@ -52,3 +70,4 @@ services:
 volumes:
   pgdata:
   uploads:
+  redisdata:

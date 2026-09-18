@@ -9,14 +9,14 @@ import (
 	"syscall"
 	"time"
 
-	"gin-learn/config"
-	"gin-learn/jobs"
-	"gin-learn/routes"
+	"grip/config"
+	"grip/jobs"
+	"grip/routes"
 )
 
-// @title Gin Learn API
+// @title Grip API
 // @version 1.0
-// @description Users, profiles and contacts API with JWT auth and email verification.
+// @description Grip API with JWT auth and email verification.
 // @host localhost:8080
 // @BasePath /api
 // @schemes http
@@ -29,6 +29,7 @@ func main() {
 	config.LoadEnv()
 	config.RunMigrations()
 	config.ConnectDatabase()
+	config.ConnectRedis()
 
 	ctx := context.Background()
 	if err := jobs.Setup(ctx, os.Getenv("DATABASE_URL")); err != nil {
@@ -72,5 +73,8 @@ func main() {
 	}
 	if err := jobs.Shutdown(shutdownCtx); err != nil {
 		slog.Error("River shutdown error", "error", err)
+	}
+	if err := config.CloseRedis(); err != nil {
+		slog.Error("Redis shutdown error", "error", err)
 	}
 }

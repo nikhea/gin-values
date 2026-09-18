@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"gin-learn/config"
-	"gin-learn/dto"
-	"gin-learn/models"
+	"grip/config"
+	"grip/dto"
+	"grip/models"
 )
 
 func CreateContact(contact *models.Contact) error {

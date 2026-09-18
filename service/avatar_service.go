@@ -3,8 +3,8 @@ package services
 import (
 	"errors"
 
-	"gin-learn/models"
-	"gin-learn/repository"
+	"grip/models"
+	"grip/repository"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

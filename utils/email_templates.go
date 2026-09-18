@@ -15,7 +15,7 @@ var (
 	resetTmpl        = template.Must(template.ParseFS(emailTemplates, "templates/reset.html"))
 )
 
-const emailAppName = "Gin Learn"
+const emailAppName = "Grip"
 
 type verificationData struct {
 	AppName    string

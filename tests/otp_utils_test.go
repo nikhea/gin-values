@@ -4,7 +4,7 @@ import (
 	"testing"
 	"unicode"
 
-	"gin-learn/utils"
+	"grip/utils"
 )
 
 func TestGenerateOTPFormat(t *testing.T) {

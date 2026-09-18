@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"gin-learn/handlers"
-	"gin-learn/middleware"
+	"grip/handlers"
+	"grip/middleware"
 
-	_ "gin-learn/docs"
+	_ "grip/docs"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

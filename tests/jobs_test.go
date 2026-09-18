@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"gin-learn/jobs"
+	"grip/jobs"
 
 	"github.com/riverqueue/river"
 )

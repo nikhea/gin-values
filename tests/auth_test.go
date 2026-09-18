@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"gin-learn/config"
-	"gin-learn/dto"
-	"gin-learn/models"
-	"gin-learn/repository"
-	"gin-learn/routes"
-	services "gin-learn/service"
-	"gin-learn/utils"
+	"grip/config"
+	"grip/dto"
+	"grip/models"
+	"grip/repository"
+	"grip/routes"
+	services "grip/service"
+	"grip/utils"
 
 	"github.com/gin-gonic/gin"
 )

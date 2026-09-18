@@ -1,6 +1,6 @@
 package dto
 
-import "gin-learn/models"
+import "grip/models"
 
 type RegisterRequest struct {
 	Name string `json:"name" binding:"required,min=3,max=50" example:"Kaige Saif"`

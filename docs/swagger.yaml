@@ -373,8 +373,8 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: Users, profiles and contacts API with JWT auth and email verification.
-  title: Gin Learn API
+  description: Grip API with JWT auth and email verification.
+  title: Grip API
   version: "1.0"
 paths:
   /auth/forgot-password:

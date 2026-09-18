@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"gin-learn/utils"
+	"grip/utils"
 
 	"github.com/gin-gonic/gin"
 )

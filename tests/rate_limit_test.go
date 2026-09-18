@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"gin-learn/middleware"
+	"grip/middleware"
 
 	"github.com/gin-gonic/gin"
 )

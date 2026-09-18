@@ -13,9 +13,9 @@ import (
 	"strings"
 	"testing"
 
-	"gin-learn/config"
-	"gin-learn/jobs"
-	"gin-learn/models"
+	"grip/config"
+	"grip/jobs"
+	"grip/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"

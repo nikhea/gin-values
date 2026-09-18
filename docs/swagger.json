@@ -4,8 +4,8 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Users, profiles and contacts API with JWT auth and email verification.",
-        "title": "Gin Learn API",
+        "description": "Grip API with JWT auth and email verification.",
+        "title": "Grip API",
         "contact": {},
         "version": "1.0"
     },

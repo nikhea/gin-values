@@ -1,6 +1,6 @@
 package dto
 
-import "gin-learn/models"
+import "grip/models"
 
 // Response envelopes mirror the JSON shapes returned by handlers so
 // Swagger documents accurate schemas instead of generic objects.

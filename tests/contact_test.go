@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"gin-learn/dto"
+	"grip/dto"
 )
 
 func TestValidateContactValue(t *testing.T) {

@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"gin-learn/config"
-	"gin-learn/dto"
-	"gin-learn/jobs"
+	"grip/config"
+	"grip/dto"
+	"grip/jobs"
 
 	"github.com/gin-gonic/gin"
 )

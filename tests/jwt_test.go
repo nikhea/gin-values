@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"gin-learn/utils"
+	"grip/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 )

@@ -4,10 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"gin-learn/config"
-	"gin-learn/dto"
-	"gin-learn/jobs"
-	services "gin-learn/service"
+	"grip/config"
+	"grip/dto"
+	"grip/jobs"
+	services "grip/service"
 )
 
 func riverJobCount(t *testing.T, kind string) int64 {

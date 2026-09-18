@@ -1,4 +1,4 @@
-# Gin Learn
+# Grip
 
 A REST API built with **Go + Gin + Postgres**, covering users, profiles, and contacts with JWT auth, email verification (link + OTP), background email jobs, file uploads, and Swagger docs.
 
@@ -7,6 +7,8 @@ A REST API built with **Go + Gin + Postgres**, covering users, profiles, and con
 - **Users / Profiles / Contacts** — full CRUD, one-to-one profiles, filtered + paginated contact listing
 - **Auth** — register, login (JWT `Bearer`), email verification via link **or** 6-digit OTP (10-min expiry, 5-attempt lockout), password reset, resend flows
 - **Email jobs** — River (Postgres-backed queue) sends verification/reset emails async; HTML + plain-text templates
+- **Cache** — optional Redis layer (graceful Postgres fallback) with namespaced keys; hot user reads cached, invalidated on writes
+- **Cache** — optional Redis layer (graceful Postgres fallback) with namespaced keys; user reads cached with invalidation on writes
 - **Imports** — bulk contact import from CSV (`name,type,value`) or a JSON array, with per-row error reports
 - **Avatars** — image uploads for users and contacts, served from `/uploads`
 - **Docs** — Swagger UI at `/swagger/*any`, per-file guides in `docs/code/`
@@ -14,7 +16,7 @@ A REST API built with **Go + Gin + Postgres**, covering users, profiles, and con
 
 ## Tech stack
 
-Go 1.27 · Gin · GORM · Postgres · River · golang-migrate · JWT (HS256) · bcrypt · Swagger · Docker
+Go 1.27 · Gin · GORM · Postgres · Redis · River · golang-migrate · JWT (HS256) · bcrypt · Swagger · Docker
 
 ## Prerequisites
 
@@ -49,6 +51,7 @@ Key env vars:
 | `TRUSTED_PROXIES` | LB/CDN IPs or CIDRs (comma-separated) | trust none |
 | `CORS_ALLOWED_ORIGINS` | Browser origins (comma-separated) | none (no CORS headers) |
 | `RATE_LIMIT_AUTH_PER_MINUTE` / `RATE_LIMIT_API_PER_MINUTE` | Per-IP budgets | `10` / `300` |
+| `REDIS_ADDR` / `REDIS_PASSWORD` / `REDIS_DB` | Redis cache (optional — app runs without it) | `localhost:6379` / empty / `0` |
 | `TEST_DATABASE_URL` | DB used by `tests/` | local `gin_app_test` |
 
 A commented template lives in `.env.example`. For deployments, read `docs/PRODUCTION.md` (secrets, TLS, migrations, backups, jobs, observability).

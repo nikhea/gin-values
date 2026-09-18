@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"gin-learn/utils"
+	"grip/utils"
 )
 
 func TestGenerateSecureToken(t *testing.T) {

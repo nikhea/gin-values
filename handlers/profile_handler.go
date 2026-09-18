@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"errors"
-	"gin-learn/dto"
-	"gin-learn/models"
-	services "gin-learn/service"
+	"grip/dto"
+	"grip/models"
+	services "grip/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

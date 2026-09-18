@@ -1,9 +1,13 @@
 package services
 
 import (
-	"gin-learn/dto"
-	"gin-learn/models"
-	"gin-learn/repository"
+	"context"
+	"log/slog"
+
+	"grip/dto"
+	"grip/models"
+	"grip/repository"
+	"grip/utils"
 
 	"github.com/google/uuid"
 )
@@ -28,7 +32,23 @@ func GetUsers() ([]models.User, error) {
 }
 
 func GetUserByID(id string) (*models.User, error) {
-	return repository.GetUserByID(id)
+	// Cache-aside: serve from Redis when available, fall back to Postgres.
+	ctx := context.Background()
+	var cached models.User
+	if hit, err := utils.GetJSON(ctx, utils.UserKey(id), &cached); err != nil {
+		slog.Debug("user cache miss (error)", "id", id, "error", err)
+	} else if hit {
+		return &cached, nil
+	}
+
+	user, err := repository.GetUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if err := utils.SetJSON(ctx, utils.UserKey(id), user, utils.DefaultCacheTTL); err != nil {
+		slog.Debug("user cache set failed", "id", id, "error", err)
+	}
+	return user, nil
 }
 
 func UpdateUser(id string, req dto.CreateUserRequest) (*models.User, error) {
@@ -45,6 +65,11 @@ func UpdateUser(id string, req dto.CreateUserRequest) (*models.User, error) {
 		return nil, err
 	}
 
+	// Invalidate the cached copy (best-effort: TTL bounds staleness anyway).
+	if err := utils.Del(context.Background(), utils.UserKey(id)); err != nil {
+		slog.Debug("user cache invalidate failed", "id", id, "error", err)
+	}
+
 	return user, nil
 }
 
@@ -54,5 +79,12 @@ func DeleteUser(id string) error {
 		return err
 	}
 
-	return repository.DeleteUser(id)
+	if err := repository.DeleteUser(id); err != nil {
+		return err
+	}
+
+	if err := utils.Del(context.Background(), utils.UserKey(id)); err != nil {
+		slog.Debug("user cache invalidate failed", "id", id, "error", err)
+	}
+	return nil
 }

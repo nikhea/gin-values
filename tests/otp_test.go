@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"gin-learn/config"
-	"gin-learn/dto"
-	"gin-learn/repository"
-	"gin-learn/routes"
-	services "gin-learn/service"
-	"gin-learn/utils"
+	"grip/config"
+	"grip/dto"
+	"grip/repository"
+	"grip/routes"
+	services "grip/service"
+	"grip/utils"
 )
 
 // setKnownOTP plants a deterministic code for tests (Register generates

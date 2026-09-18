@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"gin-learn/utils"
+	"grip/utils"
 )
 
 func TestHashAndCheckPassword(t *testing.T) {

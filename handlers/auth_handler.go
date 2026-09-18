@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"gin-learn/dto"
-	"gin-learn/middleware"
-	services "gin-learn/service"
+	"grip/dto"
+	"grip/middleware"
+	services "grip/service"
 
 	"github.com/gin-gonic/gin"
 )

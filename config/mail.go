@@ -43,7 +43,7 @@ func MailConfigFromEnv() MailConfig {
 		Password: os.Getenv("EMAIL_PASSWORD"),
 		Host:     host,
 		Port:     port,
-		FromName: "Gin Learn",
+		FromName: "Grip",
 	}
 }
 

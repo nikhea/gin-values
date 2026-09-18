@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"gin-learn/handlers"
+	"grip/handlers"
 
 	"github.com/gin-gonic/gin"
 )

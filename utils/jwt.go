@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"gin-learn/config"
+	"grip/config"
 
 	"github.com/golang-jwt/jwt/v5"
 )

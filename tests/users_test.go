@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"gin-learn/dto"
-	services "gin-learn/service"
+	"grip/dto"
+	services "grip/service"
 
 	"gorm.io/gorm"
 )

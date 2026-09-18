@@ -5,15 +5,15 @@ WORKDIR /app
 
 COPY go.mod go.sum ./
 
-# ---------- Deps: cached modules + compiled binaries ----------
+# ---------- Deps: vendored modules + compiled binaries ----------
+# Vendored (no network needed at build time) — refresh with `go mod vendor`.
 FROM base AS deps
 
-RUN go mod download
-
+COPY vendor/ ./vendor/
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags='-s -w' -o /server . && \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags='-s -w' -o /migrate ./cmd/migrate
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor -ldflags='-s -w' -o /server . && \
+    CGO_ENABLED=0 GOOS=linux go build -mod=vendor -ldflags='-s -w' -o /migrate ./cmd/migrate
 
 # ---------- Development: live reload with Air ----------
 FROM base AS development
@@ -25,6 +25,7 @@ RUN go install github.com/air-verse/air@v1.67.4
 
 # Pre-fetch modules into the image cache: the bind mount overlays /app
 # at runtime, and external network may be unavailable there.
+COPY vendor/ ./vendor/
 RUN go mod download
 
 COPY . .

@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gin-learn/jobs"
-	"gin-learn/routes"
+	"grip/jobs"
+	"grip/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/riverqueue/river"

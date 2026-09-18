@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	"gin-learn/dto"
-	services "gin-learn/service"
-	"gin-learn/utils"
+	"grip/dto"
+	services "grip/service"
+	"grip/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

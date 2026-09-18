@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"gin-learn/middleware"
-	"gin-learn/utils"
+	"grip/middleware"
+	"grip/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

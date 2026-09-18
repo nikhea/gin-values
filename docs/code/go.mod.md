@@ -1,6 +1,6 @@
 # `go.mod` / `go.sum`
 
-Go module definition for `module gin-learn` (Go 1.27.1). `go.sum` is the generated checksum lockfile — never edited by hand.
+Go module definition for `module grip` (Go 1.27.1). `go.sum` is the generated checksum lockfile — never edited by hand.
 
 ## Direct dependencies
 

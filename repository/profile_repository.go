@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"gin-learn/config"
-	"gin-learn/models"
+	"grip/config"
+	"grip/models"
 )
 
 func CreateProfile(profile *models.Profile) error {

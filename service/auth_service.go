@@ -6,11 +6,11 @@ import (
 	"log/slog"
 	"time"
 
-	"gin-learn/dto"
-	"gin-learn/jobs"
-	"gin-learn/models"
-	"gin-learn/repository"
-	"gin-learn/utils"
+	"grip/dto"
+	"grip/jobs"
+	"grip/models"
+	"grip/repository"
+	"grip/utils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -98,6 +98,7 @@ func VerifyEmail(token string) (*models.User, error) {
 	if err := repository.UpdateUser(user); err != nil {
 		return nil, err
 	}
+	_ = utils.Del(context.Background(), utils.UserKey(user.ID))
 	return user, nil
 }
 
@@ -143,6 +144,7 @@ func VerifyOTP(email, code string) (*models.User, error) {
 	if err := repository.UpdateUser(user); err != nil {
 		return nil, err
 	}
+	_ = utils.Del(context.Background(), utils.UserKey(user.ID))
 	return user, nil
 }
 
@@ -263,5 +265,6 @@ func ResetPassword(token, newPassword string) (*models.User, error) {
 	if err := repository.UpdateUser(user); err != nil {
 		return nil, err
 	}
+	_ = utils.Del(context.Background(), utils.UserKey(user.ID))
 	return user, nil
 }

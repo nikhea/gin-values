@@ -1,9 +1,9 @@
 package services
 
 import (
-	"gin-learn/dto"
-	"gin-learn/models"
-	"gin-learn/repository"
+	"grip/dto"
+	"grip/models"
+	"grip/repository"
 
 	"github.com/google/uuid"
 )

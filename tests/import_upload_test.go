@@ -12,10 +12,10 @@ import (
 	"strings"
 	"testing"
 
-	"gin-learn/dto"
-	"gin-learn/repository"
-	"gin-learn/routes"
-	services "gin-learn/service"
+	"grip/dto"
+	"grip/repository"
+	"grip/routes"
+	services "grip/service"
 
 	"github.com/gin-gonic/gin"
 )

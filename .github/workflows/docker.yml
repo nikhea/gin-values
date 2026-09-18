@@ -15,10 +15,10 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build development target
-        run: docker build --target development -t gin-learn:dev .
+        run: docker build --target development -t grip:dev .
 
       - name: Build production target
-        run: docker build --target production -t gin-learn:prod .
+        run: docker build --target production -t grip:prod .
 
   smoke:
     runs-on: ubuntu-latest

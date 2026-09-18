@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"gin-learn/utils"
+	"grip/utils"
 )
 
 // With no SMTP credentials the mailer must log-and-succeed so auth

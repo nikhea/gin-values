@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/smtp"
 
-	"gin-learn/config"
+	"grip/config"
 )
 
 // SendMail delivers a multipart (plain-text + HTML) email via SMTP.
@@ -18,7 +18,7 @@ func SendMail(to, subject, textBody, htmlBody string) error {
 		return nil
 	}
 
-	boundary := "gin-learn-boundary"
+	boundary := "grip-boundary"
 	header := fmt.Sprintf("From: %s <%s>\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary=%s\r\n\r\n",
 		cfg.FromName, cfg.Address, to, subject, boundary)
 	partText := fmt.Sprintf("--%s\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n%s\r\n", boundary, textBody)
