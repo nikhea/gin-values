@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"errors"
+	"grip/audit"
 	"grip/dto"
+	"grip/middleware"
 	"grip/models"
 	services "grip/service"
 	"net/http"
@@ -13,6 +15,14 @@ import (
 
 // Compile-time reference so Swagger can resolve models.Contact in annotations.
 var _ = models.Contact{}
+
+// contactOrgMeta attaches the team scope to audit rows when present.
+func contactOrgMeta(contact *models.Contact) map[string]any {
+	if contact.OrgID != nil && *contact.OrgID != "" {
+		return map[string]any{"org_id": *contact.OrgID}
+	}
+	return nil
+}
 
 func writeContactError(c *gin.Context, err error, notFoundMsg string) {
 	var validationErr *dto.ValidationError
@@ -44,6 +54,12 @@ func writeContactError(c *gin.Context, err error, notFoundMsg string) {
 // @Failure 500 {object} dto.ErrorEnvelope
 // @Router /contacts/ [post]
 func CreateContact(c *gin.Context) {
+	actorID, ok := middleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+		return
+	}
+
 	var req dto.CreateContactRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -52,7 +68,7 @@ func CreateContact(c *gin.Context) {
 		return
 	}
 
-	contact, err := services.CreateContact(req)
+	contact, err := services.CreateContactForUser(actorID, req)
 	if err != nil {
 		writeContactError(c, err, "User not found")
 		return
@@ -62,6 +78,7 @@ func CreateContact(c *gin.Context) {
 		"message": "Contact created",
 		"contact": contact,
 	})
+	audit.Log(c, models.AuditContactCreate, "contacts", contact.ID, contactOrgMeta(contact))
 }
 
 // GetContacts godoc
@@ -79,6 +96,12 @@ func CreateContact(c *gin.Context) {
 // @Failure 500 {object} dto.ErrorEnvelope
 // @Router /contacts/ [get]
 func GetContacts(c *gin.Context) {
+	actorID, ok := middleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+		return
+	}
+
 	var filter dto.ContactFilter
 	if err := c.ShouldBindQuery(&filter); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -86,10 +109,18 @@ func GetContacts(c *gin.Context) {
 		})
 		return
 	}
+	// Org scope also accepted via header; explicit query wins.
+	if filter.OrgID == "" {
+		filter.OrgID = middleware.OrgIDFromRequest(c)
+	}
 	filter.Normalize()
 
-	contacts, total, err := services.ListContacts(filter)
+	contacts, total, err := services.ListContactsForUser(actorID, filter)
 	if err != nil {
+		if errors.Is(err, services.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
 		internalError(c, err)
 		return
 	}
@@ -112,7 +143,13 @@ func GetContacts(c *gin.Context) {
 // @Failure 500 {object} dto.ErrorEnvelope
 // @Router /contacts/{id} [get]
 func GetContact(c *gin.Context) {
-	contact, err := services.GetContactByID(c.Param("id"))
+	actorID, ok := middleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+		return
+	}
+
+	contact, err := services.GetContactForUser(actorID, c.Param("id"))
 	if err != nil {
 		writeContactError(c, err, "Contact not found")
 		return
@@ -135,6 +172,12 @@ func GetContact(c *gin.Context) {
 // @Failure 500 {object} dto.ErrorEnvelope
 // @Router /contacts/{id} [put]
 func UpdateContact(c *gin.Context) {
+	actorID, ok := middleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+		return
+	}
+
 	var req dto.UpdateContactRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -143,11 +186,17 @@ func UpdateContact(c *gin.Context) {
 		return
 	}
 
-	contact, err := services.UpdateContact(c.Param("id"), req)
+	contact, err := services.UpdateContactForUser(actorID, c.Param("id"), req)
 	if err != nil {
+		if errors.Is(err, services.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
 		writeContactError(c, err, "Contact not found")
 		return
 	}
+
+	audit.Log(c, models.AuditContactUpdate, "contacts", contact.ID, contactOrgMeta(contact))
 
 	c.JSON(http.StatusOK, contact)
 }
@@ -163,12 +212,25 @@ func UpdateContact(c *gin.Context) {
 // @Failure 500 {object} dto.ErrorEnvelope
 // @Router /contacts/{id} [delete]
 func DeleteContact(c *gin.Context) {
-	if err := services.DeleteContact(c.Param("id")); err != nil {
+	actorID, ok := middleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+		return
+	}
+
+	if err := services.DeleteContactForUser(actorID, c.Param("id")); err != nil {
+		if errors.Is(err, services.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
 		writeContactError(c, err, "Contact not found")
 		return
 	}
 
+	audit.Log(c, models.AuditContactDelete, "contacts", c.Param("id"), nil)
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Contact deleted",
+		"message":      "Contact deleted",
+		"soft_deleted": true,
 	})
 }

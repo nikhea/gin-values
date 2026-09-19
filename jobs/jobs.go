@@ -12,8 +12,11 @@ import (
 	"log/slog"
 	"time"
 
+	"grip/models"
+	"grip/repository"
 	"grip/utils"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
@@ -56,6 +59,54 @@ type SendEmailWorker struct {
 // Work implements river.Worker.
 func (w *SendEmailWorker) Work(ctx context.Context, job *river.Job[SendEmailArgs]) error {
 	return utils.SendMail(job.Args.To, job.Args.Subject, job.Args.Body, job.Args.HTML)
+}
+
+// NotifyArgs is the payload for one inbox notification.
+type NotifyArgs struct {
+	UserID string         `json:"user_id"`
+	Type   string         `json:"type"`
+	Title  string         `json:"title"`
+	Body   string         `json:"body"`
+	Data   map[string]any `json:"data,omitempty"`
+}
+
+// Kind implements river.JobArgs.
+func (NotifyArgs) Kind() string { return "notify" }
+
+// NotifyWorker writes inbox rows for NotifyArgs jobs.
+type NotifyWorker struct {
+	river.WorkerDefaults[NotifyArgs]
+}
+
+// Work implements river.Worker.
+func (w *NotifyWorker) Work(ctx context.Context, job *river.Job[NotifyArgs]) error {
+	a := job.Args
+	if a.UserID == "" || a.Title == "" {
+		return fmt.Errorf("jobs: notify missing user_id/title")
+	}
+	return repository.CreateNotification(&models.Notification{
+		ID:     uuid.New().String(),
+		UserID: a.UserID,
+		Type:   a.Type,
+		Title:  a.Title,
+		Body:   a.Body,
+		Data:   a.Data,
+	})
+}
+
+// EnqueueNotify queues an inbox notification (best-effort: callers log
+// failures and continue, mirroring email enqueue semantics).
+func EnqueueNotify(ctx context.Context, userID, typ, title, body string, data map[string]any) error {
+	if Client == nil {
+		return fmt.Errorf("jobs: client not started (call jobs.Setup first)")
+	}
+	_, err := Client.Insert(ctx, NotifyArgs{
+		UserID: userID, Type: typ, Title: title, Body: body, Data: data,
+	}, nil)
+	if err != nil {
+		return fmt.Errorf("jobs: insert notify: %w", err)
+	}
+	return nil
 }
 
 // CleanupArgs triggers the daily purge of old finished River jobs.
@@ -111,6 +162,7 @@ func Setup(ctx context.Context, databaseURL string) error {
 
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &SendEmailWorker{})
+	river.AddWorker(workers, &NotifyWorker{})
 	river.AddWorker(workers, &CleanupWorker{})
 
 	client, err := river.NewClient(riverpgxv5.New(pool), &river.Config{

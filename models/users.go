@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type User struct {
 	ID string `gorm:"primaryKey;type:varchar(36)" json:"id" example:"458622d8-daba-4252-8ce1-846277353139"`
@@ -30,6 +34,11 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 
 	UpdatedAt time.Time `json:"updated_at"`
+
+	// Soft delete: Delete() sets this instead of removing the row.
+	// Queries filter it out automatically; uniqueness is partial
+	// (WHERE deleted_at IS NULL) so values stay reusable.
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty" swaggertype:"primitive,string"`
 
 	Profile *Profile `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"profile,omitempty"`
 }

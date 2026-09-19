@@ -25,3 +25,8 @@ func UpdateProfile(profile *models.Profile) error {
 func DeleteProfileByUserID(userID string) error {
 	return config.DB.Delete(&models.Profile{}, "user_id = ?", userID).Error
 }
+
+// HardDeleteProfileByUserID permanently removes the row.
+func HardDeleteProfileByUserID(userID string) error {
+	return config.DB.Unscoped().Delete(&models.Profile{}, "user_id = ?", userID).Error
+}

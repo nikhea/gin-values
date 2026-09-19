@@ -59,6 +59,9 @@ func Setup() *gin.Engine {
 		}
 
 		RegisterContactRoutes(protected)
+		RegisterOrgRoutes(protected)
+		RegisterAuditRoutes(protected)
+		RegisterNotificationRoutes(protected)
 	}
 
 	return router

@@ -56,7 +56,7 @@ func registerVerifiedUser(t *testing.T, name, email, password string) (*models.U
 	if _, err := services.VerifyEmail(stored.VerificationToken); err != nil {
 		t.Fatalf("verify: %v", err)
 	}
-	loggedIn, token, err := services.Login(dto.LoginRequest{Email: email, Password: password})
+	loggedIn, token, _, err := services.Login(dto.LoginRequest{Email: email, Password: password})
 	if err != nil {
 		t.Fatalf("login: %v", err)
 	}
@@ -86,12 +86,12 @@ func TestRegisterVerifyLoginFlow(t *testing.T) {
 	}
 
 	// Login before verification is forbidden.
-	if _, _, err := services.Login(dto.LoginRequest{Email: "integ@example.com", Password: "supersecret123"}); err != services.ErrEmailNotVerified {
+	if _, _, _, err := services.Login(dto.LoginRequest{Email: "integ@example.com", Password: "supersecret123"}); err != services.ErrEmailNotVerified {
 		t.Fatalf("pre-verify login err = %v, want ErrEmailNotVerified", err)
 	}
 
 	// Wrong password.
-	if _, _, err := services.Login(dto.LoginRequest{Email: "integ@example.com", Password: "wrongpass1"}); err != services.ErrInvalidCredentials {
+	if _, _, _, err := services.Login(dto.LoginRequest{Email: "integ@example.com", Password: "wrongpass1"}); err != services.ErrInvalidCredentials {
 		t.Fatalf("wrong password err = %v, want ErrInvalidCredentials", err)
 	}
 
@@ -108,7 +108,7 @@ func TestRegisterVerifyLoginFlow(t *testing.T) {
 		t.Fatalf("verify: %v", err)
 	}
 
-	loggedIn, token, err := services.Login(dto.LoginRequest{Email: "integ@example.com", Password: "supersecret123"})
+	loggedIn, token, _, err := services.Login(dto.LoginRequest{Email: "integ@example.com", Password: "supersecret123"})
 	if err != nil {
 		t.Fatalf("login: %v", err)
 	}
@@ -150,10 +150,10 @@ func TestPasswordResetFlow(t *testing.T) {
 		t.Fatalf("reset: %v", err)
 	}
 
-	if _, _, err := services.Login(dto.LoginRequest{Email: "reset@example.com", Password: "oldpassword1"}); err != services.ErrInvalidCredentials {
+	if _, _, _, err := services.Login(dto.LoginRequest{Email: "reset@example.com", Password: "oldpassword1"}); err != services.ErrInvalidCredentials {
 		t.Fatalf("old password err = %v, want ErrInvalidCredentials", err)
 	}
-	if _, _, err := services.Login(dto.LoginRequest{Email: "reset@example.com", Password: "newpassword1"}); err != nil {
+	if _, _, _, err := services.Login(dto.LoginRequest{Email: "reset@example.com", Password: "newpassword1"}); err != nil {
 		t.Fatalf("login with new password: %v", err)
 	}
 
@@ -230,7 +230,7 @@ func TestLegacyUserWithoutPasswordCannotLogin(t *testing.T) {
 	if err := config.DB.Create(legacy).Error; err != nil {
 		t.Fatalf("create legacy user: %v", err)
 	}
-	if _, _, err := services.Login(dto.LoginRequest{Email: "legacy@example.com", Password: "whatever12"}); err != services.ErrInvalidCredentials {
+	if _, _, _, err := services.Login(dto.LoginRequest{Email: "legacy@example.com", Password: "whatever12"}); err != services.ErrInvalidCredentials {
 		t.Fatalf("legacy login err = %v, want ErrInvalidCredentials", err)
 	}
 }

@@ -35,18 +35,40 @@ func JWTSecret() []byte {
 	return []byte(secret)
 }
 
-// JWTTTL returns how long issued tokens stay valid (default 24h).
-func JWTTTL() time.Duration {
-	raw := os.Getenv("JWT_TTL_HOURS")
+// AccessTTL returns how long access JWTs stay valid.
+// Precedence: ACCESS_TTL_MINUTES, then legacy JWT_TTL_HOURS, then 15m.
+func AccessTTL() time.Duration {
+	if raw := os.Getenv("ACCESS_TTL_MINUTES"); raw != "" {
+		if minutes, err := strconv.Atoi(raw); err == nil && minutes > 0 {
+			return time.Duration(minutes) * time.Minute
+		}
+		slog.Warn("Invalid ACCESS_TTL_MINUTES, falling back", "value", raw)
+	}
+	if raw := os.Getenv("JWT_TTL_HOURS"); raw != "" {
+		if hours, err := strconv.Atoi(raw); err == nil && hours > 0 {
+			return time.Duration(hours) * time.Hour
+		}
+	}
+	return 15 * time.Minute
+}
+
+// RefreshTTL returns how long refresh tokens stay valid (default 30d).
+func RefreshTTL() time.Duration {
+	raw := os.Getenv("REFRESH_TTL_DAYS")
 	if raw == "" {
-		return 24 * time.Hour
+		return 30 * 24 * time.Hour
 	}
-	hours, err := strconv.Atoi(raw)
-	if err != nil || hours <= 0 {
-		slog.Warn("Invalid JWT_TTL_HOURS, falling back to 24h", "value", raw)
-		return 24 * time.Hour
+	days, err := strconv.Atoi(raw)
+	if err != nil || days <= 0 {
+		slog.Warn("Invalid REFRESH_TTL_DAYS, falling back to 30d", "value", raw)
+		return 30 * 24 * time.Hour
 	}
-	return time.Duration(hours) * time.Hour
+	return time.Duration(days) * 24 * time.Hour
+}
+
+// JWTTTL is kept for backward compatibility; prefer AccessTTL.
+func JWTTTL() time.Duration {
+	return AccessTTL()
 }
 
 // AppURL is the public base URL used to build email links.

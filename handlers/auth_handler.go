@@ -1,15 +1,31 @@
 package handlers
 
 import (
+	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 
+	"grip/audit"
 	"grip/dto"
+	"grip/jobs"
 	"grip/middleware"
+	"grip/models"
 	services "grip/service"
 
 	"github.com/gin-gonic/gin"
 )
+
+// notifyWelcome queues the post-verification greeting (best-effort).
+func notifyWelcome(user *models.User) {
+	err := jobs.EnqueueNotify(context.Background(), user.ID, models.NotifyWelcome,
+		"Welcome to Grip",
+		"Your email is verified. Glad to have you, "+user.Name+"!",
+		map[string]any{"email": user.Email})
+	if err != nil {
+		slog.Warn("welcome notification failed", "error", err, "user", user.ID)
+	}
+}
 
 func writeAuthError(c *gin.Context, err error) {
 	switch {
@@ -30,6 +46,9 @@ func writeAuthError(c *gin.Context, err error) {
 		c.JSON(http.StatusTooManyRequests, gin.H{"error": err.Error()})
 	case errors.Is(err, services.ErrAlreadyVerified):
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	case errors.Is(err, services.ErrInvalidRefreshToken),
+		errors.Is(err, services.ErrRefreshReuse):
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 	default:
 		internalError(c, err)
 	}
@@ -59,6 +78,8 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	audit.LogFor(c, user.ID, models.AuditRegister, "users", user.ID, "", map[string]any{"email": user.Email})
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Registered. Please check your email to verify your account",
 		"user":    user,
@@ -83,16 +104,19 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	user, token, err := services.Login(req)
+	user, token, refresh, err := services.Login(req)
 	if err != nil {
 		writeAuthError(c, err)
 		return
 	}
 
+	audit.LogFor(c, user.ID, models.AuditLogin, "users", user.ID, "", map[string]any{"email": user.Email})
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Logged in",
-		"token":   token,
-		"user":    user,
+		"message":       "Logged in",
+		"token":         token,
+		"refresh_token": refresh,
+		"user":          user,
 	})
 }
 
@@ -111,6 +135,9 @@ func VerifyEmail(c *gin.Context) {
 		writeAuthError(c, err)
 		return
 	}
+
+	audit.LogFor(c, user.ID, models.AuditVerifyEmail, "users", user.ID, "", nil)
+	notifyWelcome(user)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Email verified. You can now log in",
@@ -140,6 +167,9 @@ func VerifyOTP(c *gin.Context) {
 		writeAuthError(c, err)
 		return
 	}
+
+	audit.LogFor(c, user.ID, models.AuditVerifyOTP, "users", user.ID, "", nil)
+	notifyWelcome(user)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Email verified. You can now log in",
@@ -195,6 +225,8 @@ func ForgotPassword(c *gin.Context) {
 	}
 
 	// Always succeed to prevent account enumeration.
+	audit.Log(c, models.AuditForgotPassword, "users", "", map[string]any{"email": req.Email})
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "If the email exists, a password-reset email was sent",
 	})
@@ -224,14 +256,105 @@ func ResetPassword(c *gin.Context) {
 		return
 	}
 
-	if _, err := services.ResetPassword(req.Token, req.NewPassword); err != nil {
+	user, err := services.ResetPassword(req.Token, req.NewPassword)
+	if err != nil {
 		writeAuthError(c, err)
 		return
+	}
+
+	audit.Log(c, models.AuditResetPassword, "users", "", nil)
+	if err := jobs.EnqueueNotify(context.Background(), user.ID, models.NotifyPasswordChanged,
+		"Password changed",
+		"Your password was just changed. If this wasn't you, reset it immediately.",
+		nil); err != nil {
+		slog.Warn("password-changed notification failed", "error", err, "user", user.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Password reset. You can now log in",
 	})
+}
+
+// Refresh godoc
+// @Summary Rotate a refresh token into a new pair
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.RefreshRequest true "Refresh payload"
+// @Success 200 {object} dto.AuthResponse
+// @Failure 400 {object} dto.ErrorEnvelope
+// @Failure 401 {object} dto.ErrorEnvelope
+// @Router /auth/refresh [post]
+func Refresh(c *gin.Context) {
+	var req dto.RefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	access, refresh, user, err := services.Rotate(req.RefreshToken)
+	if err != nil {
+		writeAuthError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":       "Token refreshed",
+		"token":         access,
+		"refresh_token": refresh,
+		"user":          user,
+	})
+}
+
+// Logout godoc
+// @Summary Revoke one refresh token (logout)
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.RefreshRequest true "Refresh payload"
+// @Success 200 {object} dto.MessageEnvelope
+// @Failure 400 {object} dto.ErrorEnvelope
+// @Router /auth/logout [post]
+func Logout(c *gin.Context) {
+	var req dto.RefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := services.Revoke(req.RefreshToken); err != nil {
+		writeAuthError(c, err)
+		return
+	}
+
+	audit.Log(c, models.AuditLogout, "users", "", nil)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out"})
+}
+
+// LogoutAll godoc
+// @Summary Revoke all refresh tokens (logout everywhere)
+// @Tags auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.MessageEnvelope
+// @Failure 401 {object} dto.ErrorEnvelope
+// @Router /auth/logout-all [post]
+func LogoutAll(c *gin.Context) {
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+		return
+	}
+
+	if err := services.RevokeAll(userID); err != nil {
+		writeAuthError(c, err)
+		return
+	}
+
+	audit.Log(c, models.AuditLogoutAll, "users", userID, nil)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out everywhere"})
 }
 
 // Me godoc

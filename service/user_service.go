@@ -31,6 +31,12 @@ func GetUsers() ([]models.User, error) {
 	return repository.GetUsers()
 }
 
+// ListUsers returns a filtered page of users plus the total count.
+func ListUsers(filter dto.UserFilter) ([]models.User, int64, error) {
+	filter.Normalize()
+	return repository.ListUsers(filter)
+}
+
 func GetUserByID(id string) (*models.User, error) {
 	// Cache-aside: serve from Redis when available, fall back to Postgres.
 	ctx := context.Background()

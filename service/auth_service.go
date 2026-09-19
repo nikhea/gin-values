@@ -186,30 +186,30 @@ func ResendVerification(email string) error {
 }
 
 // Login validates credentials and email verification, then issues a JWT.
-func Login(req dto.LoginRequest) (*models.User, string, error) {
+func Login(req dto.LoginRequest) (*models.User, string, string, error) {
 	user, err := repository.GetUserByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, "", ErrInvalidCredentials
+			return nil, "", "", ErrInvalidCredentials
 		}
-		return nil, "", err
+		return nil, "", "", err
 	}
 	// Users created before auth (no password set) cannot log in.
 	if user.PasswordHash == "" {
-		return nil, "", ErrInvalidCredentials
+		return nil, "", "", ErrInvalidCredentials
 	}
 	if err := utils.CheckPassword(user.PasswordHash, req.Password); err != nil {
-		return nil, "", ErrInvalidCredentials
+		return nil, "", "", ErrInvalidCredentials
 	}
 	if !user.EmailVerified {
-		return nil, "", ErrEmailNotVerified
+		return nil, "", "", ErrEmailNotVerified
 	}
 
-	token, err := utils.GenerateToken(user.ID, user.Email)
+	access, refresh, err := IssueTokenPair(user)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
-	return user, token, nil
+	return user, access, refresh, nil
 }
 
 // ForgotPassword creates a 1-hour reset token and emails it. Unknown

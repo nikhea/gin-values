@@ -14,7 +14,9 @@ Loads environment variables from the `.env` file in the repo root.
 | `APP_PORT` | — (informational; server currently listens on `:8080`) | — |
 | `APP_URL` | `config/auth.go` (`AppURL`) | Public base URL for email links |
 | `JWT_SECRET` | `config/auth.go` | HMAC secret for access tokens |
-| `JWT_TTL_HOURS` | `config/auth.go` | Token lifetime, default `24` |
+| `JWT_TTL_HOURS` | `config/auth.go` | Legacy access-token lifetime (hours); overridden by `ACCESS_TTL_MINUTES` |
+| `ACCESS_TTL_MINUTES` | `config/auth.go` (`AccessTTL`) | Access JWT lifetime, default `15` |
+| `REFRESH_TTL_DAYS` | `config/auth.go` (`RefreshTTL`) | Refresh token lifetime, default `30` |
 | `EMAIL_SERVICE` | `config/mail.go` | `Gmail` → `smtp.gmail.com:587` |
 | `EMAIL_ADDRESS` / `EMAIL_PASSWORD` | `config/mail.go` | SMTP credentials (app password) |
 | `EMAIL_HOST` / `EMAIL_PORT` | `config/mail.go` | Override when service isn't Gmail |

@@ -13,6 +13,7 @@ type UserEnvelope struct {
 type UsersEnvelope struct {
 	Message string        `json:"message"`
 	Users   []models.User `json:"user"`
+	Meta    PageMeta      `json:"meta"`
 }
 
 type ProfileEnvelope struct {

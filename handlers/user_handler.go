@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"grip/audit"
 	"grip/dto"
 	"grip/models"
 	services "grip/service"
@@ -42,19 +43,33 @@ func CreateUser(c *gin.Context) {
 		"message": "User created",
 		"user":    user,
 	})
+	audit.Log(c, models.AuditUserCreate, "users", user.ID, map[string]any{"email": user.Email})
 }
 
 // GetUsers godoc
-// @Summary List users
+// @Summary List users with pagination and search
 // @Tags users
 // @Produce json
 // @Security BearerAuth
+// @Param search query string false "Search name and email" example(kaige)
+// @Param page query int false "Page number" default(1) example(1)
+// @Param page_size query int false "Page size" default(10) example(10)
 // @Success 200 {object} dto.UsersEnvelope
+// @Failure 400 {object} dto.ErrorEnvelope
 // @Failure 404 {object} dto.MessageEnvelope
 // @Failure 500 {object} dto.ErrorEnvelope
 // @Router /users/ [get]
 func GetUsers(c *gin.Context) {
-	users, err := services.GetUsers()
+	var filter dto.UserFilter
+	if err := c.ShouldBindQuery(&filter); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	filter.Normalize()
+
+	users, total, err := services.ListUsers(filter)
 	if err != nil {
 		internalError(c, err)
 		return
@@ -71,6 +86,7 @@ func GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Users found",
 		"user":    users,
+		"meta":    dto.NewPageMeta(filter.Pagination, total),
 	})
 }
 
@@ -138,6 +154,8 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	audit.Log(c, models.AuditUserUpdate, "users", user.ID, nil)
+
 	c.JSON(http.StatusOK, user)
 }
 
@@ -165,7 +183,10 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
+	audit.Log(c, models.AuditUserDelete, "users", id, nil)
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "User deleted",
+		"message":      "User deleted",
+		"soft_deleted": true,
 	})
 }

@@ -2,9 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"crypto/subtle"
-	"encoding/hex"
 	"math/big"
 	"time"
 )
@@ -35,8 +33,7 @@ func GenerateOTP() (string, error) {
 // HashOTP returns the SHA-256 hex digest of a code. Only the digest
 // is stored in the database; the plain code travels by email only.
 func HashOTP(code string) string {
-	sum := sha256.Sum256([]byte(code))
-	return hex.EncodeToString(sum[:])
+	return SHA256Hex(code)
 }
 
 // CheckOTP compares a candidate code against a stored digest in

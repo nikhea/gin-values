@@ -15,6 +15,133 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/audit-logs/": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "List organization audit logs (admin+)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by actor user ID",
+                        "name": "actor_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "contacts.create",
+                        "description": "Filter by action",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "contacts",
+                        "description": "Filter by resource",
+                        "name": "resource_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2026-01-01T00:00:00Z",
+                        "description": "RFC3339 start",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2026-12-31T23:59:59Z",
+                        "description": "RFC3339 end",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "example": 10,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AuditEnvelope"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/audit-logs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get one organization audit log (admin+)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Audit log ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AuditLog"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/forgot-password": {
             "post": {
                 "consumes": [
@@ -105,6 +232,75 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/logout": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Revoke one refresh token (logout)",
+                "parameters": [
+                    {
+                        "description": "Refresh payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RefreshRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout-all": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Revoke all refresh tokens (logout everywhere)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/me": {
             "get": {
                 "security": [
@@ -136,6 +332,51 @@ const docTemplate = `{
                         "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Rotate a refresh token into a new pair",
+                "parameters": [
+                    {
+                        "description": "Refresh payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RefreshRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
                         }
                     }
                 }
@@ -822,6 +1063,447 @@ const docTemplate = `{
                 }
             }
         },
+        "/notifications/": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "List my notifications (newest first)",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Unread only",
+                        "name": "unread_only",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "example": 10,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NotificationsEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/read-all": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Mark all my notifications read",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/unread-count": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Count my unread notifications",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UnreadEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/{id}/read": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Mark one notification read",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Notification ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NotificationEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/orgs/": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orgs"
+                ],
+                "summary": "List my organizations",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OrgsEnvelope"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orgs"
+                ],
+                "summary": "Create an organization (caller becomes owner)",
+                "parameters": [
+                    {
+                        "description": "Organization payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateOrgRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OrgEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/orgs/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orgs"
+                ],
+                "summary": "Delete the organization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/orgs/{id}/members": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orgs"
+                ],
+                "summary": "Add a member to the organization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Member payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddMemberRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MemberEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/orgs/{id}/members/{uid}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orgs"
+                ],
+                "summary": "Change a member's role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Member user ID",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Role payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateMemberRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MemberEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orgs"
+                ],
+                "summary": "Remove a member from the organization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Member user ID",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageEnvelope"
+                        }
+                    }
+                }
+            }
+        },
         "/readyz": {
             "get": {
                 "produces": [
@@ -860,12 +1542,43 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "List users",
+                "summary": "List users with pagination and search",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "kaige",
+                        "description": "Search name and email",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "example": 10,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.UsersEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorEnvelope"
                         }
                     },
                     "404": {
@@ -1355,12 +2068,56 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AddMemberRequest": {
+            "type": "object",
+            "required": [
+                "role",
+                "user_id"
+            ],
+            "properties": {
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "owner",
+                        "admin",
+                        "member",
+                        "viewer"
+                    ],
+                    "example": "member"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "458622d8-daba-4252-8ce1-846277353139"
+                }
+            }
+        },
+        "dto.AuditEnvelope": {
+            "type": "object",
+            "properties": {
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AuditLog"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PageMeta"
+                }
+            }
+        },
         "dto.AuthResponse": {
             "type": "object",
             "properties": {
                 "message": {
                     "type": "string",
                     "example": "Logged in"
+                },
+                "refresh_token": {
+                    "type": "string",
+                    "example": "9f2c4a1e6b4d4f8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2"
                 },
                 "token": {
                     "type": "string",
@@ -1416,7 +2173,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "type",
-                "user_id",
                 "value"
             ],
             "properties": {
@@ -1424,6 +2180,11 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 100,
                     "example": "Work email"
+                },
+                "org_id": {
+                    "description": "OrgID attaches the contact to a team; nil means personal.\nHTTP handlers overwrite UserID with the caller (owners create only\ntheir own contacts) and check org membership when set.",
+                    "type": "string",
+                    "example": "b3c4d5e6-f7a8-49b0-c1d2-e3f4a5b6c7d8"
                 },
                 "type": {
                     "type": "string",
@@ -1436,6 +2197,7 @@ const docTemplate = `{
                     "example": "email"
                 },
                 "user_id": {
+                    "description": "UserID is accepted for compatibility but ignored by HTTP handlers,\nwhich always force ownership to the caller.",
                     "type": "string",
                     "maxLength": 36,
                     "example": "458622d8-daba-4252-8ce1-846277353139"
@@ -1444,6 +2206,20 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 2048,
                     "example": "kaige@work.com"
+                }
+            }
+        },
+        "dto.CreateOrgRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2,
+                    "example": "Acme"
                 }
             }
         },
@@ -1560,11 +2336,75 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.MemberEnvelope": {
+            "type": "object",
+            "properties": {
+                "member": {
+                    "$ref": "#/definitions/models.Membership"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.MessageEnvelope": {
             "type": "object",
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.NotificationEnvelope": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "notification": {
+                    "$ref": "#/definitions/models.Notification"
+                }
+            }
+        },
+        "dto.NotificationsEnvelope": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PageMeta"
+                },
+                "notifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Notification"
+                    }
+                }
+            }
+        },
+        "dto.OrgEnvelope": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "org": {
+                    "$ref": "#/definitions/models.Organization"
+                }
+            }
+        },
+        "dto.OrgsEnvelope": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "orgs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Organization"
+                    }
                 }
             }
         },
@@ -1593,6 +2433,18 @@ const docTemplate = `{
                 },
                 "profile": {
                     "$ref": "#/definitions/models.Profile"
+                }
+            }
+        },
+        "dto.RefreshRequest": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string",
+                    "example": "9f2c4a1e6b4d4f8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2"
                 }
             }
         },
@@ -1673,6 +2525,18 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UnreadEnvelope": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "unread": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
         "dto.UpdateContactRequest": {
             "type": "object",
             "required": [
@@ -1699,6 +2563,24 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 2048,
                     "example": "+15551234567"
+                }
+            }
+        },
+        "dto.UpdateMemberRequest": {
+            "type": "object",
+            "required": [
+                "role"
+            ],
+            "properties": {
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "owner",
+                        "admin",
+                        "member",
+                        "viewer"
+                    ],
+                    "example": "admin"
                 }
             }
         },
@@ -1744,6 +2626,9 @@ const docTemplate = `{
                 "message": {
                     "type": "string"
                 },
+                "meta": {
+                    "$ref": "#/definitions/dto.PageMeta"
+                },
                 "user": {
                     "type": "array",
                     "items": {
@@ -1769,6 +2654,45 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AuditLog": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "example": "contacts.create"
+                },
+                "actor_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "resource_id": {
+                    "type": "string"
+                },
+                "resource_type": {
+                    "type": "string",
+                    "example": "contacts"
+                }
+            }
+        },
         "models.Contact": {
             "type": "object",
             "properties": {
@@ -1779,6 +2703,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "deleted_at": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string",
                     "example": "9c9e6679-7425-40de-944b-e07fc1f90ae7"
@@ -1786,6 +2713,11 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Work email"
+                },
+                "org_id": {
+                    "description": "OrgID is nil for personal contacts (owner-only). Set for team contacts.",
+                    "type": "string",
+                    "example": "b3c4d5e6-f7a8-49b0-c1d2-e3f4a5b6c7d8"
                 },
                 "type": {
                     "type": "string",
@@ -1801,6 +2733,76 @@ const docTemplate = `{
                 "value": {
                     "type": "string",
                     "example": "kaige@work.com"
+                }
+            }
+        },
+        "models.Membership": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Notification": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "example": "Your email is verified. Glad to have you!"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "id": {
+                    "type": "string"
+                },
+                "read_at": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Welcome to Grip"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "welcome"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Organization": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b3c4d5e6-f7a8-49b0-c1d2-e3f4a5b6c7d8"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Acme"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -1820,6 +2822,9 @@ const docTemplate = `{
                     "example": "Gopher since 2021. Coffee first."
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
                     "type": "string"
                 },
                 "id": {
@@ -1847,6 +2852,10 @@ const docTemplate = `{
                     "example": 30
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "description": "Soft delete: Delete() sets this instead of removing the row.\nQueries filter it out automatically; uniqueness is partial\n(WHERE deleted_at IS NULL) so values stay reusable.",
                     "type": "string"
                 },
                 "email": {

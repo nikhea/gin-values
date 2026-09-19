@@ -21,6 +21,9 @@ func RegisterAuthRoutes(router *gin.Engine) {
 		auth.POST("/resend-verification", handlers.ResendVerification)
 		auth.POST("/forgot-password", handlers.ForgotPassword)
 		auth.POST("/reset-password", handlers.ResetPassword)
+		auth.POST("/refresh", handlers.Refresh)
+		auth.POST("/logout", handlers.Logout)
+		auth.POST("/logout-all", middleware.AuthRequired(), handlers.LogoutAll)
 		auth.GET("/me", middleware.AuthRequired(), handlers.Me)
 	}
 }

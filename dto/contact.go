@@ -10,7 +10,14 @@ var phoneRegexp = regexp.MustCompile(`^\+?[0-9][0-9\s\-().]{5,20}$`)
 
 // CreateContactRequest creates a contact for a user.
 type CreateContactRequest struct {
-	UserID string `json:"user_id" binding:"required,max=36" example:"458622d8-daba-4252-8ce1-846277353139"`
+	// UserID is accepted for compatibility but ignored by HTTP handlers,
+	// which always force ownership to the caller.
+	UserID string `json:"user_id" binding:"omitempty,max=36" example:"458622d8-daba-4252-8ce1-846277353139"`
+
+	// OrgID attaches the contact to a team; nil means personal.
+	// HTTP handlers overwrite UserID with the caller (owners create only
+	// their own contacts) and check org membership when set.
+	OrgID *string `json:"org_id,omitempty" example:"b3c4d5e6-f7a8-49b0-c1d2-e3f4a5b6c7d8"`
 
 	Name string `json:"name" binding:"omitempty,max=100" example:"Work email"`
 
@@ -35,6 +42,9 @@ type ContactFilter struct {
 	UserID string `form:"user_id"`
 	Type   string `form:"type" binding:"omitempty,oneof=email phone address other"`
 	Search string `form:"search"`
+	// OrgID scopes the list to one team (member-only). Handlers also
+	// accept it via the X-Org-ID header.
+	OrgID string `form:"org_id"`
 }
 
 // ValidationError marks client-caused validation failures so handlers

@@ -1,9 +1,40 @@
 basePath: /api
 definitions:
+  dto.AddMemberRequest:
+    properties:
+      role:
+        enum:
+        - owner
+        - admin
+        - member
+        - viewer
+        example: member
+        type: string
+      user_id:
+        example: 458622d8-daba-4252-8ce1-846277353139
+        type: string
+    required:
+    - role
+    - user_id
+    type: object
+  dto.AuditEnvelope:
+    properties:
+      logs:
+        items:
+          $ref: '#/definitions/models.AuditLog'
+        type: array
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/dto.PageMeta'
+    type: object
   dto.AuthResponse:
     properties:
       message:
         example: Logged in
+        type: string
+      refresh_token:
+        example: 9f2c4a1e6b4d4f8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2
         type: string
       token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OCJ9.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlF
@@ -44,6 +75,13 @@ definitions:
         example: Work email
         maxLength: 100
         type: string
+      org_id:
+        description: |-
+          OrgID attaches the contact to a team; nil means personal.
+          HTTP handlers overwrite UserID with the caller (owners create only
+          their own contacts) and check org membership when set.
+        example: b3c4d5e6-f7a8-49b0-c1d2-e3f4a5b6c7d8
+        type: string
       type:
         enum:
         - email
@@ -53,6 +91,9 @@ definitions:
         example: email
         type: string
       user_id:
+        description: |-
+          UserID is accepted for compatibility but ignored by HTTP handlers,
+          which always force ownership to the caller.
         example: 458622d8-daba-4252-8ce1-846277353139
         maxLength: 36
         type: string
@@ -62,8 +103,17 @@ definitions:
         type: string
     required:
     - type
-    - user_id
     - value
+    type: object
+  dto.CreateOrgRequest:
+    properties:
+      name:
+        example: Acme
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - name
     type: object
   dto.CreateProfileRequest:
     properties:
@@ -147,10 +197,51 @@ definitions:
     - email
     - password
     type: object
+  dto.MemberEnvelope:
+    properties:
+      member:
+        $ref: '#/definitions/models.Membership'
+      message:
+        type: string
+    type: object
   dto.MessageEnvelope:
     properties:
       message:
         type: string
+    type: object
+  dto.NotificationEnvelope:
+    properties:
+      message:
+        type: string
+      notification:
+        $ref: '#/definitions/models.Notification'
+    type: object
+  dto.NotificationsEnvelope:
+    properties:
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/dto.PageMeta'
+      notifications:
+        items:
+          $ref: '#/definitions/models.Notification'
+        type: array
+    type: object
+  dto.OrgEnvelope:
+    properties:
+      message:
+        type: string
+      org:
+        $ref: '#/definitions/models.Organization'
+    type: object
+  dto.OrgsEnvelope:
+    properties:
+      message:
+        type: string
+      orgs:
+        items:
+          $ref: '#/definitions/models.Organization'
+        type: array
     type: object
   dto.PageMeta:
     properties:
@@ -169,6 +260,14 @@ definitions:
         type: string
       profile:
         $ref: '#/definitions/models.Profile'
+    type: object
+  dto.RefreshRequest:
+    properties:
+      refresh_token:
+        example: 9f2c4a1e6b4d4f8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2
+        type: string
+    required:
+    - refresh_token
     type: object
   dto.RegisterRequest:
     properties:
@@ -227,6 +326,14 @@ definitions:
         example: 3
         type: integer
     type: object
+  dto.UnreadEnvelope:
+    properties:
+      message:
+        type: string
+      unread:
+        example: 3
+        type: integer
+    type: object
   dto.UpdateContactRequest:
     properties:
       name:
@@ -248,6 +355,19 @@ definitions:
     required:
     - type
     - value
+    type: object
+  dto.UpdateMemberRequest:
+    properties:
+      role:
+        enum:
+        - owner
+        - admin
+        - member
+        - viewer
+        example: admin
+        type: string
+    required:
+    - role
     type: object
   dto.UpdateProfileRequest:
     properties:
@@ -279,6 +399,8 @@ definitions:
     properties:
       message:
         type: string
+      meta:
+        $ref: '#/definitions/dto.PageMeta'
       user:
         items:
           $ref: '#/definitions/models.User'
@@ -296,6 +418,33 @@ definitions:
     - code
     - email
     type: object
+  models.AuditLog:
+    properties:
+      action:
+        example: contacts.create
+        type: string
+      actor_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      metadata:
+        additionalProperties: {}
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      resource_id:
+        type: string
+      resource_type:
+        example: contacts
+        type: string
+    type: object
   models.Contact:
     properties:
       avatar_url:
@@ -303,11 +452,18 @@ definitions:
         type: string
       created_at:
         type: string
+      deleted_at:
+        type: string
       id:
         example: 9c9e6679-7425-40de-944b-e07fc1f90ae7
         type: string
       name:
         example: Work email
+        type: string
+      org_id:
+        description: OrgID is nil for personal contacts (owner-only). Set for team
+          contacts.
+        example: b3c4d5e6-f7a8-49b0-c1d2-e3f4a5b6c7d8
         type: string
       type:
         example: email
@@ -319,6 +475,54 @@ definitions:
         type: string
       value:
         example: kaige@work.com
+        type: string
+    type: object
+  models.Membership:
+    properties:
+      created_at:
+        type: string
+      org_id:
+        type: string
+      role:
+        example: admin
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Notification:
+    properties:
+      body:
+        example: Your email is verified. Glad to have you!
+        type: string
+      created_at:
+        type: string
+      data:
+        additionalProperties: {}
+        type: object
+      id:
+        type: string
+      read_at:
+        type: string
+      title:
+        example: Welcome to Grip
+        type: string
+      type:
+        example: welcome
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Organization:
+    properties:
+      created_at:
+        type: string
+      id:
+        example: b3c4d5e6-f7a8-49b0-c1d2-e3f4a5b6c7d8
+        type: string
+      name:
+        example: Acme
+        type: string
+      updated_at:
         type: string
     type: object
   models.Profile:
@@ -333,6 +537,8 @@ definitions:
         example: Gopher since 2021. Coffee first.
         type: string
       created_at:
+        type: string
+      deleted_at:
         type: string
       id:
         example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
@@ -352,6 +558,12 @@ definitions:
         example: 30
         type: integer
       created_at:
+        type: string
+      deleted_at:
+        description: |-
+          Soft delete: Delete() sets this instead of removing the row.
+          Queries filter it out automatically; uniqueness is partial
+          (WHERE deleted_at IS NULL) so values stay reusable.
         type: string
       email:
         example: kaige@example.com
@@ -377,6 +589,89 @@ info:
   title: Grip API
   version: "1.0"
 paths:
+  /audit-logs/:
+    get:
+      parameters:
+      - description: Filter by actor user ID
+        in: query
+        name: actor_id
+        type: string
+      - description: Filter by action
+        example: contacts.create
+        in: query
+        name: action
+        type: string
+      - description: Filter by resource
+        example: contacts
+        in: query
+        name: resource_type
+        type: string
+      - description: RFC3339 start
+        example: "2026-01-01T00:00:00Z"
+        in: query
+        name: from
+        type: string
+      - description: RFC3339 end
+        example: "2026-12-31T23:59:59Z"
+        in: query
+        name: to
+        type: string
+      - default: 1
+        description: Page number
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        example: 10
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuditEnvelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
+      summary: List organization audit logs (admin+)
+      tags:
+      - audit
+  /audit-logs/{id}:
+    get:
+      parameters:
+      - description: Audit log ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AuditLog'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Get one organization audit log (admin+)
+      tags:
+      - audit
   /auth/forgot-password:
     post:
       consumes:
@@ -435,6 +730,49 @@ paths:
       summary: Log in with email and password
       tags:
       - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Revoke one refresh token (logout)
+      tags:
+      - auth
+  /auth/logout-all:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Revoke all refresh tokens (logout everywhere)
+      tags:
+      - auth
   /auth/me:
     get:
       produces:
@@ -455,6 +793,35 @@ paths:
       security:
       - BearerAuth: []
       summary: Get the authenticated user
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      summary: Rotate a refresh token into a new pair
       tags:
       - auth
   /auth/register:
@@ -896,6 +1263,282 @@ paths:
       summary: Health check
       tags:
       - health
+  /notifications/:
+    get:
+      parameters:
+      - description: Unread only
+        in: query
+        name: unread_only
+        type: boolean
+      - default: 1
+        description: Page number
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        example: 10
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.NotificationsEnvelope'
+      security:
+      - BearerAuth: []
+      summary: List my notifications (newest first)
+      tags:
+      - notifications
+  /notifications/{id}/read:
+    patch:
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.NotificationEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Mark one notification read
+      tags:
+      - notifications
+  /notifications/read-all:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Mark all my notifications read
+      tags:
+      - notifications
+  /notifications/unread-count:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UnreadEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Count my unread notifications
+      tags:
+      - notifications
+  /orgs/:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OrgsEnvelope'
+      security:
+      - BearerAuth: []
+      summary: List my organizations
+      tags:
+      - orgs
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateOrgRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.OrgEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Create an organization (caller becomes owner)
+      tags:
+      - orgs
+  /orgs/{id}:
+    delete:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Delete the organization
+      tags:
+      - orgs
+  /orgs/{id}/members:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Member payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.MemberEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Add a member to the organization
+      tags:
+      - orgs
+  /orgs/{id}/members/{uid}:
+    delete:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Member user ID
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Remove a member from the organization
+      tags:
+      - orgs
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Member user ID
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: Role payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MemberEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Change a member's role
+      tags:
+      - orgs
   /readyz:
     get:
       produces:
@@ -914,6 +1557,24 @@ paths:
       - health
   /users/:
     get:
+      parameters:
+      - description: Search name and email
+        example: kaige
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page number
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        example: 10
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
@@ -921,6 +1582,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.UsersEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorEnvelope'
         "404":
           description: Not Found
           schema:
@@ -931,7 +1596,7 @@ paths:
             $ref: '#/definitions/dto.ErrorEnvelope'
       security:
       - BearerAuth: []
-      summary: List users
+      summary: List users with pagination and search
       tags:
       - users
     post:

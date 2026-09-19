@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"os"
 
+	"grip/audit"
 	"grip/dto"
+	"grip/models"
 	services "grip/service"
 	"grip/utils"
 
@@ -58,6 +60,7 @@ func uploadAvatar(c *gin.Context, formKey, subdir string, link func(string) (any
 		"message":    "Avatar uploaded",
 		"avatar_url": urlPath,
 	})
+	audit.Log(c, models.AuditAvatarUpload, "avatars", "", map[string]any{"avatar_url": urlPath})
 }
 
 // UploadUserAvatar godoc

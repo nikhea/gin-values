@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"grip/authz"
 	"grip/config"
 	"grip/jobs"
 	"grip/routes"
@@ -30,6 +31,11 @@ func main() {
 	config.RunMigrations()
 	config.ConnectDatabase()
 	config.ConnectRedis()
+
+	if err := authz.Init(config.DB); err != nil {
+		slog.Error("Casbin setup failed", "error", err)
+		os.Exit(1)
+	}
 
 	ctx := context.Background()
 	if err := jobs.Setup(ctx, os.Getenv("DATABASE_URL")); err != nil {

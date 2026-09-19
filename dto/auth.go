@@ -40,7 +40,12 @@ type VerifyOTPRequest struct {
 }
 
 type AuthResponse struct {
-	Message string      `json:"message" example:"Logged in"`
-	Token   string      `json:"token,omitempty" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OCJ9.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlF"`
-	User    models.User `json:"user"`
+	Message      string      `json:"message" example:"Logged in"`
+	Token        string      `json:"token,omitempty" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OCJ9.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlF"`
+	RefreshToken string      `json:"refresh_token,omitempty" example:"9f2c4a1e6b4d4f8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2"`
+	User         models.User `json:"user"`
+}
+
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required" example:"9f2c4a1e6b4d4f8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2"`
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"grip/audit"
 	"grip/dto"
 	"grip/models"
 	services "grip/service"
@@ -54,6 +55,7 @@ func CreateProfile(c *gin.Context) {
 		"message": "Profile created",
 		"profile": profile,
 	})
+	audit.Log(c, models.AuditProfileCreate, "profiles", profile.ID, map[string]any{"user_id": profile.UserID})
 }
 
 // GetProfile godoc
@@ -120,6 +122,8 @@ func UpdateProfile(c *gin.Context) {
 		return
 	}
 
+	audit.Log(c, models.AuditProfileUpdate, "profiles", profile.ID, map[string]any{"user_id": id})
+
 	c.JSON(http.StatusOK, profile)
 }
 
@@ -147,7 +151,10 @@ func DeleteProfile(c *gin.Context) {
 		return
 	}
 
+	audit.Log(c, models.AuditProfileDelete, "profiles", "", map[string]any{"user_id": id})
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Profile deleted",
+		"message":      "Profile deleted",
+		"soft_deleted": true,
 	})
 }

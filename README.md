@@ -45,7 +45,9 @@ Key env vars:
 | `APP_PORT` | HTTP listen port | `8080` |
 | `JWT_SECRET` | Token signing secret, 32+ bytes | — (required; boot fails without it) |
 | `ALLOW_INSECURE_JWT` | Permit dev fallback secret | unset (local dev only, never prod) |
-| `JWT_TTL_HOURS` | Token lifetime | `24` |
+| `JWT_TTL_HOURS` | Legacy access-token lifetime (hours) | `24` (overridden by `ACCESS_TTL_MINUTES`) |
+| `ACCESS_TTL_MINUTES` | Access JWT lifetime | `15` |
+| `REFRESH_TTL_DAYS` | Refresh token lifetime | `30` |
 | `APP_URL` | Public base URL for email links | `http://localhost:8080` |
 | `EMAIL_SERVICE` / `EMAIL_ADDRESS` / `EMAIL_PASSWORD` | Gmail SMTP (app password) | unset → emails are logged, not sent |
 | `TRUSTED_PROXIES` | LB/CDN IPs or CIDRs (comma-separated) | trust none |
@@ -75,7 +77,10 @@ Base path `/api`. Everything except `/api/auth/*` (and `/health`) needs `Authori
 | Method & path | Description |
 |---|---|
 | `POST /auth/register` | Sign up (sends verification email with OTP + link) |
-| `POST /auth/login` | Log in, returns JWT |
+| `POST /auth/login` | Log in, returns access JWT (15m) + refresh token (30d) |
+| `POST /auth/refresh` | Rotate refresh token into a new pair (reuse revokes all sessions) |
+| `POST /auth/logout` | Revoke one refresh token |
+| `POST /auth/logout-all` | Revoke all sessions (protected) |
 | `GET /auth/verify?token=` | Verify email via link |
 | `POST /auth/verify-otp` | Verify email with `{email, code}` |
 | `POST /auth/resend-verification` | Resend verification email |
@@ -84,9 +89,14 @@ Base path `/api`. Everything except `/api/auth/*` (and `/health`) needs `Authori
 | `GET/POST /users/` · `GET/PUT/DELETE /users/:id` | User CRUD |
 | `POST /users/:id/avatar` | Upload user avatar |
 | `GET/POST/PUT/DELETE /users/:id/profile` | Profile endpoints |
-| `GET/POST /contacts/` · `GET/PUT/DELETE /contacts/:id` | Contacts (+ `?user_id=&type=&search=&page=&page_size=`) |
+| `GET/POST /contacts/` · `GET/PUT/DELETE /contacts/:id` | Contacts, owner- or org-scoped (+ `?org_id=` / `X-Org-ID`, `?type=&search=&page=&page_size=`) |
 | `POST /contacts/import/csv` · `POST /contacts/import/json` | Bulk import (multipart `file` + `user_id`) |
 | `POST /contacts/:id/avatar` | Upload contact avatar |
+| `POST/GET /orgs/` · `DELETE /orgs/:id` | Organizations (delete = owner only) |
+| `POST /orgs/:id/members` · `PUT/DELETE /orgs/:id/members/:uid` | Member management (admin+, last-owner protected) |
+| `GET /audit-logs/` · `GET /audit-logs/:id` | Audit trail (org admin+, `?actor_id=&action=&resource_type=&from=&to=`) |
+| `GET /notifications/` · `GET /notifications/unread-count` | Inbox + unread count (`?unread_only=&page=&page_size=`) |
+| `PATCH /notifications/:id/read` · `POST /notifications/read-all` | Mark read (self-scoped) |
 | `GET /health` | Liveness probe |
 
 ## Development

@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Profile struct {
 	ID string `gorm:"primaryKey;type:varchar(36)" json:"id" example:"7c9e6679-7425-40de-944b-e07fc1f90ae7"`
@@ -18,4 +22,6 @@ type Profile struct {
 	CreatedAt time.Time `json:"created_at"`
 
 	UpdatedAt time.Time `json:"updated_at"`
+
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty" swaggertype:"primitive,string"`
 }

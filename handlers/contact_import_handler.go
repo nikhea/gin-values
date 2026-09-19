@@ -1,11 +1,17 @@
 package handlers
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 
+	"grip/audit"
 	"grip/dto"
+	"grip/jobs"
+	"grip/models"
 	services "grip/service"
 	"grip/utils"
 
@@ -58,6 +64,14 @@ func importContacts(c *gin.Context, ext string, parse func(string, io.Reader) (*
 	}
 
 	c.JSON(http.StatusOK, summary)
+	audit.Log(c, models.AuditContactImport, "contacts", "",
+		map[string]any{"user_id": userID, "imported": summary.Imported, "failed": summary.Failed})
+	if err := jobs.EnqueueNotify(context.Background(), userID, models.NotifyImportFinished,
+		"Import finished",
+		fmt.Sprintf("Imported %d contacts, %d failed.", summary.Imported, summary.Failed),
+		map[string]any{"imported": summary.Imported, "failed": summary.Failed}); err != nil {
+		slog.Warn("import notification failed", "error", err, "user", userID)
+	}
 }
 
 // ImportContactsCSV godoc

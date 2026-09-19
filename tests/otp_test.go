@@ -71,7 +71,7 @@ func TestVerifyOTPFlow(t *testing.T) {
 	if !user.EmailVerified {
 		t.Fatal("expected email verified")
 	}
-	if _, _, err := services.Login(dto.LoginRequest{Email: "otp@example.com", Password: "supersecret123"}); err != nil {
+	if _, _, _, err := services.Login(dto.LoginRequest{Email: "otp@example.com", Password: "supersecret123"}); err != nil {
 		t.Fatalf("login after OTP verify: %v", err)
 	}
 

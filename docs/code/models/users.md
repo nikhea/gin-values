@@ -14,6 +14,7 @@ GORM model for the `users` table, including auth columns.
 | `ResetToken`, `ResetExpiresAt` | `json:"-"` — 1-hour password-reset token |
 | `OTPHash`, `OTPExpiresAt`, `OTPAttempts` | `json:"-"` — SHA-256 of the 6-digit code, expiry, guess counter |
 | `CreatedAt`, `UpdatedAt` | Timestamps |
+| `DeletedAt` | soft-delete timestamp (`gorm.DeletedAt`, `json:"-"` when null via `omitempty`); queries filter it automatically |
 | `Profile *Profile` | One-to-one, `OnDelete:CASCADE`, `omitempty` |
 
 ## Notes

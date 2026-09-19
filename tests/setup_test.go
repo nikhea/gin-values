@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"grip/authz"
 	"grip/config"
 	"grip/jobs"
 	"grip/models"
@@ -57,11 +58,31 @@ func requireTestDB(t *testing.T) {
 		t.Skipf("postgres not available (%v), skipping integration test", err)
 	}
 
-	if err := db.AutoMigrate(&models.User{}, &models.Profile{}, &models.Contact{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Profile{}, &models.Contact{}, &models.RefreshToken{}, &models.Organization{}, &models.Membership{}, &models.AuditLog{}, &models.Notification{}); err != nil {
 		t.Fatalf("migrate test schema: %v", err)
 	}
 
+	// Mirror migration 000008: AutoMigrate creates plain unique indexes,
+	// but production uses partial ones so soft-deleted rows never block
+	// reuse (e.g. re-registering an email). Recreate them here for parity.
+	for _, stmt := range []string{
+		`DROP INDEX IF EXISTS idx_users_email`,
+		`CREATE UNIQUE INDEX idx_users_email ON users (email) WHERE deleted_at IS NULL`,
+		`DROP INDEX IF EXISTS idx_profiles_user_id`,
+		`CREATE UNIQUE INDEX idx_profiles_user_id ON profiles (user_id) WHERE deleted_at IS NULL`,
+	} {
+		if err := db.Exec(stmt).Error; err != nil {
+			t.Fatalf("partial unique index: %v", err)
+		}
+	}
+
 	config.DB = db
+
+	// Authorization backend shares the test database (casbin_rule table
+	// is truncated with everything else in truncateAll).
+	if err := authz.Init(db); err != nil {
+		t.Fatalf("casbin setup: %v", err)
+	}
 
 	// Start River workers against the test database so service calls
 	// that enqueue email jobs work (and are actually worked) in tests.
@@ -85,7 +106,7 @@ func truncateAll(t *testing.T) {
 	if config.DB == nil {
 		return
 	}
-	if err := config.DB.Exec("TRUNCATE users, profiles, contacts, river_job RESTART IDENTITY CASCADE").Error; err != nil {
+	if err := config.DB.Exec("TRUNCATE users, profiles, contacts, organizations, memberships, casbin_rule, audit_logs, notifications, river_job RESTART IDENTITY CASCADE").Error; err != nil {
 		t.Fatalf("truncate test tables: %v", err)
 	}
 }
